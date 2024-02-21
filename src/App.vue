@@ -18,11 +18,14 @@
 <script lang="ts" setup>
 import {ref, watch} from "vue";
 import {useRouter} from "vue-router";
+import {useAppStore} from "@/store/AppStore";
 
 const router = useRouter();
 const selectedKeys = ref(['/home']);
 
 watch(() => selectedKeys.value, value => router.push(value[0]));
+
+useAppStore().init();
 
 utools.onPluginEnter(action => {
     console.log(action)
@@ -30,7 +33,7 @@ utools.onPluginEnter(action => {
 });
 
 function handleTheme() {
-    if (utools.isDarkColors()) {
+    if (useAppStore().isDarkColors()) {
         document.body.setAttribute('arco-theme', 'dark');
     } else {
         document.body.removeAttribute('arco-theme');
