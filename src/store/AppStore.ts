@@ -2,12 +2,12 @@ import {defineStore} from "pinia";
 import {ref} from "vue";
 import {getItem} from "@/utils/utools/DbStorageUtil";
 
-function renderIsDark(theme: number | null) {
+function renderIsDark(theme: ThemeType | null) {
     switch (theme) {
-        case 1:
+        case ThemeType.LIGHT:
             // 白天
             return false;
-        case 2:
+        case ThemeType.DARK:
             // 黑夜
             return true;
         default:
@@ -18,13 +18,35 @@ function renderIsDark(theme: number | null) {
 
 const key = "utools-theme";
 
+/**
+ * 主题类型
+ */
+export enum ThemeType {
+
+    /**
+     * 跟随系统
+     */
+    AUTO = 0,
+
+    /**
+     * 白天
+     */
+    LIGHT = 1,
+
+    /**
+     * 黑夜
+     */
+    DARK = 2
+
+}
+
 export const useAppStore = defineStore('app', () => {
     let dark = ref(false);
-    let themeType = 0;
+    let themeType = ThemeType.AUTO;
 
     function init() {
         // 初始化主题
-        themeType = getItem<number>(key) || 0;
+        themeType = getItem<number>(key) || ThemeType.AUTO;
         dark.value = renderIsDark(themeType);
     }
 
@@ -36,7 +58,7 @@ export const useAppStore = defineStore('app', () => {
         return themeType;
     }
 
-    function saveThemeType(res: number) {
+    function saveThemeType(res: ThemeType) {
         themeType = res;
         dark.value = renderIsDark(themeType);
         utools.dbStorage.setItem(key, themeType);
