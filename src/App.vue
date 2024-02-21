@@ -24,6 +24,19 @@ const selectedKeys = ref(['/home']);
 
 watch(() => selectedKeys.value, value => router.push(value[0]));
 
+utools.onPluginEnter(action => {
+    console.log(action)
+    handleTheme();
+});
+
+function handleTheme() {
+    if (utools.isDarkColors()) {
+        document.body.setAttribute('arco-theme', 'dark');
+    } else {
+        document.body.removeAttribute('arco-theme');
+    }
+}
+
 </script>
 <style scoped lang="less">
 .main {
