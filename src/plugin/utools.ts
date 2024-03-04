@@ -1,8 +1,10 @@
 import MessageUtil from '@/utils/MessageUtil';
 import {generateUUID} from "@/utils/BrowserUtil";
-import {del, get, getMany, keys, set} from 'idb-keyval';
+import {createStore, del, get, getMany, keys, set} from 'idb-keyval';
+import Constant from "@/global/Constant";
 
 // 模拟utools声明
+const store = createStore(Constant.id, "store");
 
 export interface DbDoc {
     _id: string,
@@ -60,7 +62,7 @@ export const utools = {
              */
             async put(doc: DbDoc): Promise<DbReturn> {
                 try {
-                    await set(doc._id, doc)
+                    await set(doc._id, doc, store)
                     return Promise.resolve({
                         id: doc._id,
                         rev: ''
@@ -78,14 +80,14 @@ export const utools = {
               * 获取文档
               */
             get(id: string): Promise<DbDoc | undefined> {
-                return get(id)
+                return get(id, store)
             },
             /**
               * 删除文档
               */
             async remove(id: string): Promise<DbReturn> {
                 try {
-                    await del(id);
+                    await del(id, store);
                     return Promise.resolve({
                         id,
                         rev: ''
@@ -104,7 +106,7 @@ export const utools = {
               * 获取所有文档 可根据文档id前缀查找
               */
             async allDocs(key?: string): Promise<DbDoc[]> {
-                let itemKeys = await keys();
+                let itemKeys = await keys(store);
                 if (key) {
                     itemKeys = itemKeys.filter(itemKey => {
                         if (typeof itemKey === 'string') {
@@ -141,6 +143,40 @@ export const utools = {
             getAttachmentType(docId: string): Promise<string | null>{
                 return Promise.reject("Web不支持保存附件")
             },
+        }
+    },
+    dbStorage: {
+        /**
+         * 键值对存储，如果键名存在，则更新其对应的值
+         * @param key 键名(同时为文档ID)
+         * @param value 键值
+         */
+        setItem(key: string, value: any): void {
+            localStorage.setItem(key, JSON.stringify({
+                value: value
+            }))
+        },
+        /**
+         * 获取键名对应的值
+         */
+        getItem(key: string): any {
+            const value = localStorage.getItem(key);
+            if (!value) {
+                return null;
+            }
+            try {
+                const valueWrap = JSON.parse(value);
+                return valueWrap['value'];
+            } catch (e) {
+                console.error(e);
+                return null;
+            }
+        },
+        /**
+         * 删除键值对(删除文档)
+         */
+        removeItem(key: string): void {
+            localStorage.removeItem(key)
         }
     },
     getPath(): string {
