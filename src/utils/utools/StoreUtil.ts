@@ -15,10 +15,9 @@ export interface StoreContent {
  * 创建一个列表存储
  *
  * @param name 存储的名字
- * @param indexKey 存储索引的键
  * @param contentPrefixKey 存储内容的键
  */
-export function createListStore<I extends StoreIndex, C extends StoreContent>(name: string, indexKey: string, contentPrefixKey: string) {
+export function createListStore<I extends StoreIndex, C extends StoreContent>(name: string, contentPrefixKey: string) {
     return defineStore(name, () => {
         const indexes = ref<Array<I>>([]);
         let rev: undefined | string = undefined;
@@ -27,7 +26,7 @@ export function createListStore<I extends StoreIndex, C extends StoreContent>(na
          * 初始化方法，此方法需要在程序第一次进入时调用
          */
         async function init() {
-            const res = await getFromOneByAsync(indexKey, indexes.value);
+            const res = await getFromOneByAsync(name, indexes.value);
             indexes.value = res.record;
             rev = res.rev;
         }
@@ -41,10 +40,10 @@ export function createListStore<I extends StoreIndex, C extends StoreContent>(na
             // 新增加内容
             await saveOneByAsync(contentPrefixKey + index.id, content);
             // 再增加索引
-            // @ts-expect-error
+            // @ts-ignore
             indexes.value.push(index);
             // 保存索引
-            rev = await saveOneByAsync(indexKey, indexes.value, rev);
+            rev = await saveOneByAsync(name, indexes.value, rev);
         }
 
         /**
@@ -58,7 +57,7 @@ export function createListStore<I extends StoreIndex, C extends StoreContent>(na
                 // 先删除索引
                 indexes.value.splice(index, 1);
                 // 保存索引
-                rev = await saveOneByAsync(indexKey, indexes.value, rev);
+                rev = await saveOneByAsync(name, indexes.value, rev);
                 // 再删除内容
                 await removeOneByAsync(contentPrefixKey + id);
             }
@@ -80,7 +79,7 @@ export function createListStore<I extends StoreIndex, C extends StoreContent>(na
                     ...index
                 }
                 // 保存索引
-                rev = await saveOneByAsync(indexKey, indexes.value, rev);
+                rev = await saveOneByAsync(name, indexes.value, rev);
                 if (content) {
                     // 再更新内容
                     await saveOneByAsync(contentPrefixKey + id, content);
@@ -103,4 +102,37 @@ export function createListStore<I extends StoreIndex, C extends StoreContent>(na
         }
 
     });
+}
+
+/**
+ * 构建一个设置存储
+ * @param name 存储的名字
+ * @param defaultValue 默认值。初始值
+ */
+export function createSettingStore<T extends Record<string, any>>(name: string, defaultValue: () => T) {
+    return defineStore(name, () => {
+        const setting = ref<T>(defaultValue());
+        let rev: undefined | string = undefined;
+
+
+        async function init() {
+            const res = await getFromOne<T>(name);
+            if (res) {
+                setting.value = ref(res.record).value;
+                rev = res.rev;
+            }
+        }
+
+        async function save(res: T) {
+            setting.value = ref(res).value;
+            rev = await saveOneByAsync(name, res);
+        }
+
+        return {
+            setting,
+            init,
+            save,
+        }
+
+    })
 }
