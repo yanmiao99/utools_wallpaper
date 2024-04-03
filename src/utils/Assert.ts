@@ -1,5 +1,5 @@
 import Optional from "@/utils/Optional";
-import MessageUtil from "@/utils/MessageUtil";
+import MessageUtil from "@/utils/modal/MessageUtil";
 
 function showMessage(error: string, message?: string | (() => void), callback?: () => void) {
     if (callback) {
@@ -75,8 +75,8 @@ export default {
 
 
     /**
-     * 断言文本不为空字符串
-     * @param text 文字
+     * 断言表达式为假
+     * @param text 表达式
      * @param message 为真时提示消息
      */
     notEmpty(text?: string, message?: string | (() => void)) {

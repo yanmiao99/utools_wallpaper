@@ -1,12 +1,13 @@
-import { Button, Notification } from "@arco-design/web-vue";
-import { h } from "vue";
+import {Button, Notification} from "@arco-design/web-vue";
+import {h} from "vue";
 
 export default {
     success(content: string, title?: string): void {
         Notification.success({
             content,
             title,
-            closable: true
+            closable: true,
+            duration: 1000
         })
     },
     info(content: string, title?: string): void {
@@ -32,8 +33,8 @@ export default {
     },
 
     confirm(content: string, title: string, config: {
-        confirmButtonText: string,
-        cancelButtonText: string,
+        confirmButtonText?: string,
+        cancelButtonText?: string,
         duration?: number
     }): Promise<void> {
         return new Promise<void>((resolve, reject) => {
@@ -51,7 +52,7 @@ export default {
                             flag = false;
                             notificationReturn.close();
                         }
-                    }, () => (config.cancelButtonText)),
+                    }, () => (config.cancelButtonText || '取消')),
                     h(Button, {
                         type: 'primary',
                         onClick: () => {
@@ -59,7 +60,7 @@ export default {
                             flag = false;
                             notificationReturn.close();
                         }
-                    }, () => (config.confirmButtonText))
+                    }, () => (config.confirmButtonText || '确定'))
                 ]),
                 onClose() {
                     if (flag) {

@@ -1,20 +1,31 @@
-import {Input, InputPassword, Modal, Select, Option} from "@arco-design/web-vue";
-import {h, VNode} from "vue";
+import {
+    Button, ButtonGroup,
+    Input,
+    InputPassword,
+    Modal,
+    ModalReturn,
+    Result,
+    Space,
+    Typography,
+    TypographyParagraph
+} from "@arco-design/web-vue";
+import {h, ref, VNode} from "vue";
 import Optional from "@/utils/Optional";
+import {IconSync} from "@arco-design/web-vue/es/icon";
 
 export default {
 
-    confirm(content: string, title: string, config?: {
-        confirmButtonText?: string,
-        cancelButtonText?: string
-    }): Promise<void> {
+    confirm(content: string, title: string, config?: Partial<{
+        confirmButtonText: string,
+        cancelButtonText: string
+    }>): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             Modal.confirm({
                 content,
                 title,
                 draggable: true,
-                okText: config && config.confirmButtonText,
-                cancelText: config && config.cancelButtonText,
+                okText: config ? config.confirmButtonText : '',
+                cancelText: config ? config.cancelButtonText : '',
                 onOk: () => {
                     resolve();
                 },
@@ -25,6 +36,26 @@ export default {
                     reject('close');
                 }
             })
+        })
+    },
+
+    confirmMulti(content: string, title: string, buttons: Array<{ name: string, action: () => void }>): Promise<void> {
+        return new Promise<void>(resolve => {
+            const modalReturn = Modal.confirm({
+                content,
+                title,
+                draggable: true,
+                footer: () => <ButtonGroup type={'primary'}>
+                    <Space>
+                        <Button type={'secondary'} onClick={modalReturn.close}>取消</Button>
+                        {buttons.map(btn => <Button onClick={() => {
+                            btn.action();
+                            resolve();
+                            modalReturn.close();
+                        }}>{btn.name}</Button>)}
+                    </Space>
+                </ButtonGroup>
+            });
         })
     },
 
@@ -54,98 +85,46 @@ export default {
         })
     },
 
-    prompt(content: string, title: string, config: {
+    prompt(content: string, title?: string, config?: {
         confirmButtonText?: string,
         cancelButtonText?: string,
         inputPattern?: RegExp,
         inputErrorMessage?: string,
         inputValue?: string
     }): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
-            let value = Optional.ofNullable(config.inputValue).orElse("") as string;
+        const _config = config || {};
+        return new Promise<string>(resolve => {
+            let value = Optional.ofNullable(_config.inputValue).orElse("") as string;
             const onInput = (e: string) => {
                 value = e;
             }
-            Modal.confirm({
+            const res = Modal.confirm({
                 content: () => h('div', {class: 'es-prompt'}, [
                     h('div', {}, content),
+                    // @ts-ignore
                     h(Input, {
                         type: 'text',
                         onInput,
-                        "default-value": config.inputValue,
+                        "default-value": _config.inputValue,
                         style: 'margin-top: 8px;',
                         onVnodeMounted: (e: VNode) => {
                             (e.el as HTMLInputElement)
                                 .getElementsByTagName("input")
                                 .item(0)!
                                 .focus();
+                        },
+                        onPressEnter: () => {
+                            resolve(value);
+                            res.close();
                         }
                     })
                 ]),
-                title,
+                title: title,
                 draggable: true,
-                okText: config.confirmButtonText,
-                cancelText: config.cancelButtonText,
+                okText: _config.confirmButtonText,
+                cancelText: _config.cancelButtonText,
                 onOk: () => {
                     resolve(value);
-                },
-                onCancel: () => {
-                    if (reject) {
-                        reject('cancel');
-                    }
-                },
-                onClose: () => {
-                    if (reject) {
-                        reject('close');
-                    }
-                }
-            })
-        })
-    },
-
-    choose(content: string, title: string, config: {
-        confirmButtonText?: string,
-        cancelButtonText?: string,
-        inputValue?: string,
-        placeholder?: string,
-        options: { key: string, value: string }[]
-    }): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
-            let value = Optional.ofNullable(config.inputValue).orElse("") as string;
-            const onChange = (e: any) => {
-                value = e;
-            }
-            Modal.confirm({
-                content: () => h('div', {class: 'es-prompt'}, [
-                    h('div', {}, content),
-                    h(Select, {
-                        onChange,
-                        placeholder: config.placeholder,
-                        "default-value": config.inputValue || '',
-                        style: 'margin-top: 8px;',
-                    }, () => config.options.map(option => {
-                        return h(Option, {
-                            value: option.value,
-                            label: option.key
-                        })
-                    }))
-                ]),
-                title,
-                draggable: true,
-                okText: config.confirmButtonText,
-                cancelText: config.cancelButtonText,
-                onOk: () => {
-                    resolve(value);
-                },
-                onCancel: () => {
-                    if (reject) {
-                        reject('cancel');
-                    }
-                },
-                onClose: () => {
-                    if (reject) {
-                        reject('close');
-                    }
                 }
             })
         })
@@ -193,7 +172,7 @@ export default {
                         style: 'margin-top: 8px;'
                     })
                 ]),
-                title: '提示',
+                title: title,
                 draggable: true,
                 okText: config.confirmButtonText,
                 cancelText: config.cancelButtonText,
@@ -208,6 +187,69 @@ export default {
                 }
             })
         })
+    },
+
+    loading(content: string, title?: string): MessageBoxLoadingReturn {
+        const body = ref(content);
+        const lines = ref(new Array<LineContent>());
+        const res = Modal.open({
+            title: title || '加载中',
+            content: () => <Result title={content} status="info">
+                {{
+                    icon: () => <IconSync spin={true}/>,
+                    subtitle: () => {
+                        if (lines.value.length > 0) {
+                            return <Typography style={{maxHeight: "30vh", overflow: "auto"}}>
+                                {lines.value.map((line, index) =>
+                                    <TypographyParagraph key={index} style={{color: renderColor(line.status)}}>
+                                        {line.content}
+                                    </TypographyParagraph>)}
+                            </Typography>
+                        }
+                    }
+                }}
+            </Result>,
+            draggable: true,
+            closable: false,
+            footer: false,
+            escToClose: false,
+            maskClosable: false
+        });
+        return {
+            ...res,
+            setContent(content: string) {
+                body.value = content;
+            },
+            append(line: string, status: LineContentStatus = 'info') {
+                lines.value.unshift({content: line, status: status});
+            }
+        }
     }
 
+}
+
+export interface MessageBoxLoadingReturn extends ModalReturn {
+    setContent(content: string): void;
+
+    append(line: string, status?: LineContentStatus): void;
+}
+
+export interface LineContent {
+    content: string;
+    status: LineContentStatus;
+}
+
+export type LineContentStatus = 'success' | 'warning' | 'error' | 'info';
+
+export function renderColor(status: LineContentStatus): string {
+    switch (status) {
+        case "success":
+            return 'rgb(var(--green-6))';
+        case 'warning':
+            return 'rgb(var(--orange-6))';
+        case "error":
+            return 'rgb(var(--red-6))';
+        default:
+            return 'var(--color-neutral-10)';
+    }
 }

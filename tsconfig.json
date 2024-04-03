@@ -9,6 +9,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "esModuleInterop": true,
+    "jsxImportSource": "vue",
     "lib": [
       "ESNext",
       "DOM"

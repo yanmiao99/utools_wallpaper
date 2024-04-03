@@ -1,4 +1,4 @@
-import MessageUtil from "@/utils/MessageUtil";
+import MessageUtil from "@/utils/modal/MessageUtil";
 
 /**
  * 下载
@@ -71,7 +71,6 @@ export function uint8ArrayToString(uint8Array: Uint8Array): string {
 
 export function svg2png(svg: SVGSVGElement): Promise<string> {
     // 创建一个Image对象，用于保存生成的图片
-    const img = new Image();
     // 创建一个Canvas元素
     const canvas = document.createElement('canvas');
     // 获取Canvas上下文对象
@@ -175,10 +174,6 @@ export function randomColor(str?: string): string {
     return colors[index]
 }
 
-export function pathJoin(...paths: string[]): string {
-    return paths.join("/")
-}
-
 export function arrayBufferToBase64(buffer: ArrayBuffer) {
     let binary = '';
     const bytes = new Uint8Array(buffer);
@@ -187,4 +182,62 @@ export function arrayBufferToBase64(buffer: ArrayBuffer) {
         binary += String.fromCharCode(bytes[i]);
     }
     return window.btoa(binary);
+}
+export function base64toBlob(base64: string, type = 'application/octet-stream'): Blob {
+    const bStr = atob(base64);
+    let n = bStr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+        u8arr[n] = bStr.charCodeAt(n);
+    }
+    return new Blob([u8arr], {type});
+}
+
+export function blobToBase64(file: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            if (reader.result) {
+                resolve(reader.result as string);
+            }else {
+                reject("解析失败")
+            }
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+/**
+ * 生成随机字符串
+ * @param len 字符串长度
+ * @return 字符串
+ */
+export function getRandomChar(len: number): string {
+    const x = "0123456789qwertyuioplkjhgfdsazxcvbnm"; // 需要什么字符这里添加
+    let tmp = "";
+    const timestamp = new Date().getTime();
+    for (let i = 0; i < len; i++) {
+        tmp += x.charAt(Math.ceil(Math.random() * 100000000) % x.length);
+    }
+    return timestamp + tmp;
+}
+
+export const getImageSize = (src: string): Promise<{width: number,height: number}> => {
+    return new Promise(resolve => {
+        let img = new Image()
+        img.src = src
+        img.onload = () => {
+            resolve({
+                width: img.width,
+                height: img.height
+            })
+        }
+        img.onerror = () => {
+            resolve({
+                width: 100,
+                height: 100
+            })
+        }
+    })
 }
