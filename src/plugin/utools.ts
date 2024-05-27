@@ -1,5 +1,5 @@
 import MessageUtil from '@/utils/modal/MessageUtil';
-import {generateUUID} from "@/utils/BrowserUtil";
+import {generateUUID} from "@/utils/lang/BrowserUtil";
 import {createStore, del, get, getMany, keys, set} from 'idb-keyval';
 import Constant from "@/global/Constant";
 

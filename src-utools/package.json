@@ -8,7 +8,5 @@
   "type": "commonjs",
   "dependencies": {},
   "devDependencies": {
-    "@types/node": "^20.4.10",
-    "utools-api-types": "^4.0.0"
   }
 }

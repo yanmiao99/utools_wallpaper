@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@arco-design/web-vue": "^2.54.3",
+    "@types/node": "^20.12.12",
     "@vueuse/core": "^10.9.0",
     "axios": "^1.6.5",
     "idb-keyval": "^6.2.1",

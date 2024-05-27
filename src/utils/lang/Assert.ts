@@ -1,4 +1,4 @@
-import Optional from "@/utils/Optional";
+import Optional from "@/utils/lang/Optional";
 import MessageUtil from "@/utils/modal/MessageUtil";
 
 function showMessage(error: string, message?: string | (() => void), callback?: () => void) {
