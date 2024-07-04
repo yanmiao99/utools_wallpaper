@@ -3,7 +3,7 @@
  * @param value 检测值
  * @param defaultValue 默认值
  */
-export function ifNullByDefault<T>(value: T | null | undefined, defaultValue: T): T {
+export function defaultIfNull<T>(value: T | null | undefined, defaultValue: T): T {
     return value === null || typeof value === 'undefined' ? defaultValue : value;
 }
 
