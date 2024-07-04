@@ -17,28 +17,33 @@
 </template>
 <script lang="ts" setup>
 import {ref, watch} from "vue";
-import {useRouter} from "vue-router";
-import {useAppStore} from "@/store/AppStore";
+import {useRoute, useRouter} from "vue-router";
+import {useDark} from "@vueuse/core";
 
+const route = useRoute();
 const router = useRouter();
 const selectedKeys = ref(['/home']);
 
 watch(() => selectedKeys.value, value => router.push(value[0]));
 
-useAppStore().init();
+watch(() => route.path, value => {
+    if (value !== selectedKeys.value[0]) {
+        selectedKeys.value[0] = value;
+    }
+})
+
+useDark({
+    selector: 'body',
+    attribute: 'arco-theme',
+    valueDark: 'dark',
+    valueLight: 'light',
+    storage: utools.dbStorage
+})
 
 utools.onPluginEnter(action => {
     console.log(action)
-    handleTheme();
 });
 
-function handleTheme() {
-    if (useAppStore().isDarkColors()) {
-        document.body.setAttribute('arco-theme', 'dark');
-    } else {
-        document.body.removeAttribute('arco-theme');
-    }
-}
 
 </script>
 <style scoped lang="less">
