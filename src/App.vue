@@ -1,5 +1,5 @@
 <template>
-    <a-layout class="main">
+    <a-layout :class="{main: true,'bg-color': true, detach: detach}">
         <a-layout-sider collapsed style="z-index: 50">
             <a-menu style="width: 200px;height: 100%;" breakpoint="xl" v-model:selected-keys="selectedKeys">
                 <a-menu-item key="/home">
@@ -19,6 +19,7 @@
 import {ref, watch} from "vue";
 import {useRoute, useRouter} from "vue-router";
 import {useDark} from "@vueuse/core";
+import {detach} from "@/store/AppStore";
 
 const route = useRoute();
 const router = useRouter();
@@ -41,7 +42,8 @@ useDark({
 })
 
 utools.onPluginEnter(action => {
-    console.log(action)
+    console.log(action);
+    detach.value = utools.getWindowType() !== 'main';
 });
 
 
@@ -53,7 +55,6 @@ utools.onPluginEnter(action => {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: var(--color-bg-1);
     color: var(--color-text-1);
 
     & > .container {

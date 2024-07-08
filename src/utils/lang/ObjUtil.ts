@@ -21,3 +21,9 @@ export function ifObjectIsNull<T extends Record<string, any>, A extends T[K], K 
     }
 }
 
+export function clone(obj: any, deep = false) {
+    if (deep) {
+        return JSON.parse(JSON.stringify(obj));
+    }
+    return structuredClone(obj);
+}
