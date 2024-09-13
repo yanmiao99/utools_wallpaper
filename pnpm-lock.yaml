@@ -52,8 +52,8 @@ importers:
         specifier: ^4.9.5
         version: 4.9.5
       utools-api-types:
-        specifier: ^5.0.0
-        version: 5.0.0
+        specifier: ^5.2.0
+        version: 5.2.0
       vite:
         specifier: 5.2.6
         version: 5.2.6(@types/node@20.13.0)(less@4.2.0)(terser@5.27.0)
@@ -1137,8 +1137,8 @@ packages:
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
 
-  utools-api-types@5.0.0:
-    resolution: {integrity: sha512-XLwJYo+6Tfhq6W5yGtzllIS0Dt0byy2fpyhdohwGJIju5+VsmJ2Nljvc63mStvx8uzWwEyIwr6fFmrycf3rAEw==}
+  utools-api-types@5.2.0:
+    resolution: {integrity: sha512-3QfAioW6k1QxBtlpEwvcadpaPz/r6WBF/5s38smy58r372my217K8OmN9mD6aHHfZqeVkBawfr0HIDQ9rz9IEQ==}
 
   vite@5.2.6:
     resolution: {integrity: sha512-FPtnxFlSIKYjZ2eosBQamz4CbyrTizbZ3hnGJlh/wMtCrlp1Hah6AzBLjGI5I2urTfNnpovpHdrL6YRuBOPnCA==}
@@ -2303,7 +2303,7 @@ snapshots:
     dependencies:
       punycode: 2.3.1
 
-  utools-api-types@5.0.0: {}
+  utools-api-types@5.2.0: {}
 
   vite@5.2.6(@types/node@20.13.0)(less@4.2.0)(terser@5.27.0):
     dependencies:
