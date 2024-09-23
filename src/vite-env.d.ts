@@ -14,8 +14,8 @@ interface Window {
         /**
          * 打开一个文件，并返回blob对象
          * @param options 参数
-         * @return 返回blob对象
+         * @return 返回文件列表
          */
-        openFile(options: OpenFileOption): Promise<Blob>
+        openFile(options: OpenFileOption): Promise<Array<File>>
     }
 }

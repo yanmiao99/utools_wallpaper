@@ -1,4 +1,17 @@
-const fs = require('fs');
+const {readFile} = require('fs');
+const {basename} = require('path');
+
+function readFileAsync(path) {
+    return new Promise((resolve, reject) => {
+        readFile(path, 'utf8', (err, data) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+            resolve(data);
+        })
+    })
+}
 
 /**
  * 获取一个文件
@@ -11,21 +24,20 @@ const fs = require('fs');
  *     message?: string,
  *     securityScopedBookmarks?: boolean
  *   }} 参数
- * @return {Promise<Blob>} 返回blob对象
+ * @return {Promise<Array<File>>} 返回文件对象
  */
-function openFile(options) {
-    return new Promise((resolve, reject) => {
-        const path = utools.showOpenDialog(options)
-        if (path) {
-            fs.readFile(path, (err, data) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-                resolve(new Blob([data], { type: 'application/octet-stream' }));
-            })
-        }
-    })
+async function openFile(options) {
+    const paths = utools.showOpenDialog(options);
+    const files = [];
+    for (const path of paths) {
+        const data = await readFileAsync(path);
+        const name = basename(path);
+        const type = 'application/octet-stream';
+        const blob = new Blob([data], { type: type });
+        const file = new File([blob], name, { type: type });
+        files.push(file);
+    }
+    return files;
 }
 
 window.preload = {
