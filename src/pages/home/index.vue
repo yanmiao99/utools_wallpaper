@@ -61,7 +61,7 @@ const imageList = ref([]); // 图片列表
 const imageListTotal = ref(0); // 图片总数
 
 const imageListCurrent = ref(0); // 当前页
-const imageListPageSize = ref(9); // 每页显示数量
+const imageListPageSize = ref(4); // 每页显示数量
 
 const currentTypeMode = ref('getAppsByCategory'); // 当前模式  // getAppsByCategory // search
 
@@ -82,7 +82,7 @@ const getImageData = async (params) => {
       count: imageListPageSize.value,
     };
     const res = await get360Wallpaper(param);
-    imageList.value = res.data.sort(() => Math.random() - 0.5);
+    imageList.value = res.data;
     imageListTotal.value = Number(res.total);
   } finally {
     imageLoading.value = false;
@@ -225,8 +225,8 @@ const handleSetWallpaper = (item) => {
               v-for="item in imageList"
               :key="item.id">
               <a-image
-                width="220"
-                height="130"
+                width="340"
+                height="200"
                 class="home_content_item_image"
                 show-loader
                 :alt="item.utag"
@@ -256,6 +256,15 @@ const handleSetWallpaper = (item) => {
                     <icon-send />
                     设为壁纸
                   </a-image-preview-action>
+                </template>
+
+                <template #loader>
+                  <img
+                    width="340"
+                    height="200"
+                    loading="lazy"
+                    :src="item.url_thumb"
+                    style="filter: blur(5px)" />
                 </template>
               </a-image>
 
