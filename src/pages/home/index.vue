@@ -2,19 +2,53 @@
 import { ref, watch, onMounted } from 'vue';
 import { get360Wallpaper } from '@/api/360_wallpaper';
 import { Notification, Modal } from '@arco-design/web-vue';
+import { useSubInput } from '@/hooks/SubInput';
+
+const { subInput, setSubInput, onChanged, onSearch, onClear } = useSubInput(
+  '',
+  '搜一搜，例如：赵露思',
+  true
+);
+
+onChanged((val) => {
+  // console.log('子输入框内容变更：', val);
+});
+
+onClear(() => {
+  currentTypeMode.value = 'getAppsByCategory';
+  let params = {
+    cid: currentTag.value,
+  };
+  getImageData(params);
+});
+
+const userSearchKeyword = ref(''); // 用户输入的搜索关键词
+
+onSearch((val) => {
+  userSearchKeyword.value = val;
+  currentTypeMode.value = 'search';
+  imageListCurrent.value = 0;
+  let params = {
+    kw: val,
+  };
+  getImageData(params);
+});
 
 const tagTypeList = ref([
+  { name: '游戏', cid: 5 },
+  { name: '文字', cid: 35 },
   { name: '美女', cid: 6 },
   { name: '4K', cid: 36 },
   { name: '清新', cid: 15 },
   { name: '动漫', cid: 26 },
   { name: '明星', cid: 11 },
   { name: '萌宠', cid: 14 },
-  { name: '游戏', cid: 5 },
   { name: '影视', cid: 7 },
+  { name: '军事', cid: 22 },
 ]);
 
 onMounted(() => {
+  currentTypeMode.value = 'getAppsByCategory';
   let params = {
     cid: currentTag.value,
   };
@@ -26,7 +60,7 @@ const currentTag = ref(tagTypeList.value[0].cid); // 当前标签
 const imageList = ref([]); // 图片列表
 const imageListTotal = ref(0); // 图片总数
 
-const imageListCurrent = ref(1); // 当前页
+const imageListCurrent = ref(0); // 当前页
 const imageListPageSize = ref(9); // 每页显示数量
 
 const currentTypeMode = ref('getAppsByCategory'); // 当前模式  // getAppsByCategory // search
@@ -48,7 +82,7 @@ const getImageData = async (params) => {
       count: imageListPageSize.value,
     };
     const res = await get360Wallpaper(param);
-    imageList.value = res.data;
+    imageList.value = res.data.sort(() => Math.random() - 0.5);
     imageListTotal.value = Number(res.total);
   } finally {
     imageLoading.value = false;
@@ -57,7 +91,9 @@ const getImageData = async (params) => {
 
 // 切换标签
 const handleSearchKeyword = (value) => {
-  imageListCurrent.value = 1;
+  currentTypeMode.value = 'getAppsByCategory';
+  setSubInput('');
+  imageListCurrent.value = 0;
   currentTag.value = value;
   let params = {
     cid: value,
@@ -68,9 +104,14 @@ const handleSearchKeyword = (value) => {
 // 分页
 const handlePageChange = (value) => {
   imageListCurrent.value = value;
-  let params = {
-    cid: currentTag.value,
-  };
+  let params = {};
+
+  if (currentTypeMode.value === 'search') {
+    params.kw = userSearchKeyword.value;
+  } else {
+    params.cid = currentTag.value;
+  }
+
   getImageData(params);
 };
 
@@ -177,65 +218,66 @@ const handleSetWallpaper = (item) => {
             </a-radio-group>
           </div>
         </template>
-        <div class="home_content">
-          <div
-            class="home_content_item"
-            v-for="item in imageList"
-            :key="item.id">
-            <a-image
-              width="220"
-              height="130"
-              show-loader
-              :alt="item.utag"
-              :preview-props="{
-                defaultScale: 0.7,
-                actionsLayout: [''],
-              }"
-              :src="`${item.url_thumb}?timestamp=${timestamp}`">
-              <template #preview-actions>
-                <a-image-preview-action
-                  name="下载原图"
-                  @click="handleDownloadImage(item)">
-                  <icon-cloud-download />
-                </a-image-preview-action>
+        <template v-if="imageList.length">
+          <div class="home_content">
+            <div
+              class="home_content_item"
+              v-for="item in imageList"
+              :key="item.id">
+              <a-image
+                width="220"
+                height="130"
+                class="home_content_item_image"
+                show-loader
+                :alt="item.utag"
+                :preview-props="{
+                  defaultScale: 0.7,
+                  actionsLayout: [''],
+                }"
+                :src="`${item.url_thumb}?timestamp=${timestamp}`">
+                <template #preview-actions>
+                  <a-image-preview-action
+                    name="下载高清原图到本地"
+                    @click="handleDownloadImage(item)">
+                    <icon-cloud-download />
+                    下载原图
+                  </a-image-preview-action>
 
-                <a-image-preview-action
-                  name="复制图片"
-                  @click="handleCopyImage(item)">
-                  <icon-copy />
-                </a-image-preview-action>
+                  <a-image-preview-action
+                    name="复制图片到剪贴板中"
+                    @click="handleCopyImage(item)">
+                    <icon-copy />
+                    复制图片
+                  </a-image-preview-action>
 
-                <a-image-preview-action
-                  name="设为壁纸"
-                  @click="handleSetWallpaper(item)">
-                  <icon-send />
-                </a-image-preview-action>
-              </template>
+                  <a-image-preview-action
+                    name="可将图片直接设置为壁纸"
+                    @click="handleSetWallpaper(item)">
+                    <icon-send />
+                    设为壁纸
+                  </a-image-preview-action>
+                </template>
+              </a-image>
 
-              <template #loader>
-                <img
-                  width="220"
-                  height="130"
-                  :src="item.url_thumb"
-                  style="filter: blur(2px)" />
-              </template>
-            </a-image>
-
-            <div class="home_content_item_info">
-              {{ item.resolution }}
+              <div class="home_content_item_info">
+                {{ item.resolution }}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="home_footer">
-          <a-pagination
-            @change="handlePageChange"
-            :total="imageListTotal"
-            v-model:current="imageListCurrent"
-            v-model:page-size="imageListPageSize"
-            show-total
-            show-jumper />
-        </div>
+          <div class="home_footer">
+            <a-pagination
+              @change="handlePageChange"
+              :total="imageListTotal"
+              v-model:current="imageListCurrent"
+              v-model:page-size="imageListPageSize"
+              show-jumper />
+          </div>
+        </template>
+
+        <a-empty
+          description="暂无数据,请切换标签或搜索关键词"
+          v-else />
       </a-card>
     </a-spin>
   </div>
@@ -259,6 +301,14 @@ const handleSetWallpaper = (item) => {
         .home_content_item {
           position: relative;
           margin: 5px;
+          transition: transform 0.3s;
+          &:hover {
+            transform: scale(1.01);
+          }
+          .home_content_item_image {
+            cursor: pointer;
+            border-radius: 6px;
+          }
           .home_content_item_info {
             display: flex;
             justify-content: center;
@@ -269,6 +319,8 @@ const handleSetWallpaper = (item) => {
             position: absolute;
             bottom: 0;
             width: 100%;
+            border-bottom-left-radius: 6px;
+            border-bottom-right-radius: 6px;
           }
         }
       }

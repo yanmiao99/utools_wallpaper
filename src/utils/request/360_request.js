@@ -2,7 +2,7 @@
 
 // 引入文件
 import axios from 'axios';
-import Notification from '@/utils/modal/NotificationUtil';
+import { Notification } from '@arco-design/web-vue';
 
 // 请求异常
 const NETWORK_ERROR = '网络异常,请稍后重试';
@@ -25,12 +25,15 @@ service.interceptors.response.use(
     if (errno === '0') {
       return Promise.resolve(res.data);
     } else {
-			Notification.error(errmsg || NETWORK_ERROR); // 常规报错
-      return Promise.reject(errmsg || NETWORK_ERROR);
+      Notification.error({
+        title: '错误',
+        content: NETWORK_ERROR,
+      });
+      return Promise.reject(NETWORK_ERROR);
     }
   },
   (error) => {
-    console.log('error=======>', error)
+    console.log('error=======>', error);
   }
 );
 
