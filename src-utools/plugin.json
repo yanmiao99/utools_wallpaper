@@ -1,33 +1,23 @@
 {
-    "$schema": "../node_modules/utools-api-types/resource/utools.schema.json",
-    "main": "dist/index.html",
-    "preload": "preload.js",
-    "logo": "public/logo.png",
-    "platform": [
-        "win32",
-        "darwin",
-        "linux"
-    ],
-    "development": {
-        "main": "http://localhost:5173/"
-    },
-    "pluginSetting": {
-        "single": true,
-        "height": 0
-    },
-    "features": [
-        {
-            "code": "launch",
-            "explain": "vite-utools-template",
-            "icon": "public/logo.png",
-            "platform": [
-                "win32",
-                "darwin",
-                "linux"
-            ],
-            "cmds": [
-                "vite"
-            ]
-        }
-    ]
+  "$schema": "../node_modules/utools-api-types/resource/utools.schema.json",
+  "main": "dist/index.html",
+  "preload": "preload.js",
+  "logo": "public/logo.png",
+  "platform": ["win32", "darwin", "linux"],
+  "development": {
+    "main": "http://localhost:5173/"
+  },
+  "pluginSetting": {
+    "single": true,
+    "height": 0
+  },
+  "features": [
+    {
+      "code": "精选壁纸库",
+      "explain": "精选壁纸库",
+      "icon": "public/logo.png",
+      "platform": ["win32", "darwin"],
+      "cmds": ["壁纸", "壁纸库", "壁纸下载", "壁纸设置"]
+    }
+  ]
 }
