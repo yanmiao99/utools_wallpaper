@@ -1,5 +1,5 @@
-import { computed, onMounted, onUnmounted, ref } from 'vue';
-import { createEventHook } from '@vueuse/core';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { createEventHook, useDocumentVisibility } from '@vueuse/core';
 
 /**
  * 子输入框hook
@@ -82,6 +82,18 @@ export function useSubInput(initialValue = '', placeholder, isFocus) {
     subInput.value = val;
     utools.setSubInputValue(subInput.value);
   }
+
+  const documentVisibility = useDocumentVisibility();
+
+  watch(documentVisibility, (isVisible) => {
+    if (isVisible === 'hidden') {
+      utools.removeSubInput();
+      window.removeEventListener('keydown', handleKeyDown);
+    } else {
+      register();
+      window.addEventListener('keydown', handleKeyDown);
+    }
+  });
 
   return {
     value: subInputWrap,

@@ -9,7 +9,7 @@ const NETWORK_ERROR = '网络异常,请稍后重试';
 
 // 全局配置
 const service = axios.create({
-  baseURL: 'http://wallpaper.apc.360.cn',
+  baseURL: 'https://www.diannaobizhi.club/api/bizhi',
   timeout: 30000,
 });
 
@@ -21,19 +21,23 @@ service.interceptors.request.use((req) => {
 // 响应拦截
 service.interceptors.response.use(
   (res) => {
-    const { errno, errmsg } = res.data;
-    if (errno === '0') {
-      return Promise.resolve(res.data);
+    const { code, msg } = res.data;
+    if (code === 1) {
+      return Promise.resolve(res.data.data);
     } else {
       Notification.error({
         title: '错误',
-        content: NETWORK_ERROR,
+        content: msg || NETWORK_ERROR,
       });
-      return Promise.reject(NETWORK_ERROR);
+      return Promise.reject(msg || NETWORK_ERROR);
     }
   },
   (error) => {
-    console.log('error=======>', error);
+    Notification.error({
+      title: '错误',
+      content: NETWORK_ERROR,
+    });
+    return Promise.reject(NETWORK_ERROR);
   }
 );
 

@@ -1,7 +1,7 @@
 const { readFile, createWriteStream, unlinkSync } = require('fs');
 const { basename, join } = require('path');
-const https = require('https');
 const { execSync } = require('child_process');
+const https = require('https');
 
 function readFileAsync(path) {
   return new Promise((resolve, reject) => {
@@ -45,6 +45,7 @@ async function openFile(options) {
 // 下载文件
 async function downloadFile(currentFile, fileName, userSavePath) {
   return new Promise((resolve, reject) => {
+    // 如果是http协议, 则转为https
     if (currentFile.startsWith('http://')) {
       currentFile = currentFile.replace('http://', 'https://');
     }
@@ -75,8 +76,13 @@ async function setWallpaper(imagePath) {
     try {
       // 下载图片到本地 , 然后返回保存的路径
       const path = utools.getPath('pictures');
-      const fileName = imagePath.split('/').pop();
+      const suffix = imagePath.match(/\.(jpg|png|jpeg|webp|gif)$/)[0];
+      const random = Math.floor(Math.random() * 1000000);
+      const fileName = `wallpaper_${random}${suffix}`;
       const userLocalPath = await downloadFile(imagePath, fileName, path);
+
+      console.log('userLocalPath=======>', userLocalPath);
+
       // 更换壁纸
       if (process.platform === 'win32') {
         // Windows平台
@@ -111,36 +117,13 @@ async function setWallpaper(imagePath) {
   });
 }
 
+// 转义文件路径
 function escapeImagePath(path) {
   return path.replace(/\\/g, '\\\\').replace(/ /g, '\\ ');
-}
-
-// 图片转为本地路径
-function toLocalPath(imagePath) {
-  // 图片转换为 base64 , 使用 promise 返回
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', imagePath, true);
-    xhr.responseType = 'blob';
-    xhr.onload = function () {
-      if (this.status === 200) {
-        const blob = this.response;
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          resolve(e.target.result);
-        };
-        reader.readAsDataURL(blob);
-      } else {
-        reject(new Error('图片加载失败'));
-      }
-    };
-    xhr.send();
-  });
 }
 
 window.preload = {
   openFile,
   downloadFile,
   setWallpaper,
-  toLocalPath,
 };

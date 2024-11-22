@@ -1,12 +1,16 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue';
-import { get360Wallpaper } from '@/api/360_wallpaper';
+import { ref, onMounted } from 'vue';
+import {
+  selectWallpaperListByType,
+  selectClassifyList,
+  globalSearch,
+} from '@/api/wallpaper';
 import { Notification, Modal } from '@arco-design/web-vue';
 import { useSubInput } from '@/hooks/SubInput';
 
 const { subInput, setSubInput, onChanged, onSearch, onClear } = useSubInput(
   '',
-  '搜一搜，例如：赵露思',
+  '搜一搜，回车键确认',
   true
 );
 
@@ -15,118 +19,152 @@ onChanged((val) => {
 });
 
 onClear(() => {
-  currentTypeMode.value = 'getAppsByCategory';
-  let params = {
-    cid: currentTag.value,
-  };
-  getImageData(params);
+  handleSearchBack();
 });
 
 const userSearchKeyword = ref(''); // 用户输入的搜索关键词
 
 onSearch((val) => {
   userSearchKeyword.value = val;
-  currentTypeMode.value = 'search';
-  imageListCurrent.value = 0;
-  let params = {
-    kw: val,
-  };
-  getImageData(params);
+  imageListCurrent.value = 1;
+  handleSearchKeywordData();
 });
 
 const tagTypeList = ref([
-  { name: '游戏', cid: 5 },
-  { name: '文字', cid: 35 },
-  { name: '美女', cid: 6 },
-  { name: '4K', cid: 36 },
-  { name: '清新', cid: 15 },
-  { name: '动漫', cid: 26 },
-  { name: '明星', cid: 11 },
-  { name: '萌宠', cid: 14 },
-  { name: '影视', cid: 7 },
-  { name: '军事', cid: 22 },
+  { name: '最新', type_id: 1 },
+  { name: '24H热门', type_id: 2 },
+  { name: '周排行', type_id: 3 },
+  { name: '月排行', type_id: 4 },
 ]);
 
 onMounted(() => {
-  currentTypeMode.value = 'getAppsByCategory';
-  let params = {
-    cid: currentTag.value,
-  };
-  getImageData(params);
+  getImageData();
 });
 
-const currentTag = ref(tagTypeList.value[0].cid); // 当前标签
+const currentTag = ref(tagTypeList.value[0].type_id); // 当前标签
 
 const imageList = ref([]); // 图片列表
 const imageListTotal = ref(0); // 图片总数
 
-const imageListCurrent = ref(0); // 当前页
+const imageListCurrent = ref(1); // 当前页
 const imageListPageSize = ref(4); // 每页显示数量
-
-const currentTypeMode = ref('getAppsByCategory'); // 当前模式  // getAppsByCategory // search
 
 const imageLoading = ref(false); // 加载状态
 
 const timestamp = ref(''); // 时间戳
 
+const appid = 'wx9942f3d79a3d95db'; // appid
+
+const preViewVisible = ref(false); // 预览图片弹窗
+const preViewDetails = ref({}); // 预览图片详情
+
+const imageUrlPrefix = 'https://image.diannaobizhi.club'; // 图片前缀地址
+
+// 预览图片
+const handlePreviewImage = (item) => {
+  preViewDetails.value = item;
+  preViewVisible.value = true;
+};
+
 // 获取图片数据
-const getImageData = async (params) => {
+const getImageData = async () => {
   timestamp.value = Date.now();
   imageLoading.value = true;
   try {
     let param = {
-      ...params,
-      c: 'WallPaper',
-      a: currentTypeMode.value,
-      start: imageListCurrent.value * imageListPageSize.value,
-      count: imageListPageSize.value,
+      page: imageListCurrent.value,
+      pagesize: imageListPageSize.value,
+      type_id: currentTag.value,
+      appid,
+      zone_id: 1,
     };
-    const res = await get360Wallpaper(param);
-    imageList.value = res.data;
-    imageListTotal.value = Number(res.total);
+    const res = await selectWallpaperListByType(param);
+    imageList.value = res.list;
+    imageListTotal.value = res.total;
   } finally {
     imageLoading.value = false;
   }
 };
 
-// 切换标签
-const handleSearchKeyword = (value) => {
-  currentTypeMode.value = 'getAppsByCategory';
+// 获取分类
+const getClassifyData = async () => {
+  const res = await selectClassifyList({
+    zone_id: 1,
+  });
+  console.log('分类列表：', res);
+};
+
+// 搜索关键词
+const handleSearchKeywordData = async () => {
+  timestamp.value = Date.now();
+  imageLoading.value = true;
+  try {
+    const res = await globalSearch({
+      page: imageListCurrent.value,
+      pagesize: imageListPageSize.value,
+      sort: 1,
+      label_id: '',
+      appid,
+      zone_id: 1,
+      keyword: userSearchKeyword.value,
+    });
+    const tempList = [];
+    res.list.forEach((item) => {
+      tempList.push({
+        id: item.id,
+        coverimage: item.wallpaper.coverimage,
+        coverimageDetail: item.wallpaper.coverimageDetail,
+      });
+    });
+    imageList.value = tempList;
+    imageListTotal.value = res.total;
+  } finally {
+    imageLoading.value = false;
+  }
+};
+
+// 返回标签
+const handleSearchBack = () => {
+  userSearchKeyword.value = '';
   setSubInput('');
-  imageListCurrent.value = 0;
+  imageListCurrent.value = 1;
+  getImageData();
+};
+
+// 切换标签
+const handleChangeType = (value) => {
+  setSubInput('');
+  imageListCurrent.value = 1;
   currentTag.value = value;
-  let params = {
-    cid: value,
-  };
-  getImageData(params);
+  getImageData();
 };
 
 // 分页
 const handlePageChange = (value) => {
   imageListCurrent.value = value;
-  let params = {};
 
-  if (currentTypeMode.value === 'search') {
-    params.kw = userSearchKeyword.value;
+  if (userSearchKeyword.value) {
+    handleSearchKeywordData();
   } else {
-    params.cid = currentTag.value;
+    getImageData();
   }
-
-  getImageData(params);
 };
 
 // 下载图片
 const handleDownloadImage = (item) => {
+  const downloadImagePath = imageUrlPrefix + item.coverimageDetail;
+
   Notification.info({
     id: 'downloadImage',
     content: '图片下载中,请稍等...',
     title: '提示',
   });
   const path = utools.getPath('downloads');
-  const suffix = item.url.split('.').pop();
-  const name = `${item.id}.${suffix}`;
+  // 匹配图片后缀是否有 .jpg .png .jpeg .webp .git
+  const suffix = downloadImagePath.match(/\.(jpg|png|jpeg|webp|gif)$/)[0];
+  const name = `${item.id}${suffix}`;
   window.preload
-    .downloadFile(item.url, name, path)
+    .downloadFile(downloadImagePath, name, path)
     .then(() => {
       Notification.success({
         id: 'downloadImage',
@@ -145,27 +183,31 @@ const handleDownloadImage = (item) => {
 
 // 复制图片
 const handleCopyImage = (item) => {
-  window.preload
-    .toLocalPath(item.url)
-    .then((res) => {
-      window.utools.copyImage(res);
-      Notification.success({
-        id: 'copyImage',
-        content: '图片复制成功',
-        title: '提示',
-      });
-    })
-    .catch(() => {
-      Notification.error({
-        id: 'copyImage',
-        content: '图片复制失败',
-        title: '提示',
-      });
+  const downloadImagePath = imageUrlPrefix + item.coverimageDetail;
+  // 将 webp 使用 canvas 转换成 base64
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.src = downloadImagePath;
+  img.onload = () => {
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.drawImage(img, 0, 0, img.width, img.height);
+    const base64 = canvas.toDataURL('image/png');
+    utools.copyImage(base64);
+    Notification.success({
+      id: 'copyImage',
+      content: '图片复制成功',
+      title: '提示',
     });
+  };
 };
 
 // 设为壁纸
 const handleSetWallpaper = (item) => {
+  const downloadImagePath = imageUrlPrefix + item.coverimageDetail;
+
   Modal.confirm({
     title: '提示',
     content: '确认将该图片设置为壁纸吗？',
@@ -176,7 +218,7 @@ const handleSetWallpaper = (item) => {
         title: '提示',
       });
       window.preload
-        .setWallpaper(item.url)
+        .setWallpaper(downloadImagePath)
         .then(() => {
           Notification.success({
             id: 'setWallpaper',
@@ -204,15 +246,29 @@ const handleSetWallpaper = (item) => {
       tip="数据加载中...">
       <a-card class="home_card">
         <template #title>
-          <div class="home_tabList">
+          <div
+            class="home_search_tips"
+            v-if="userSearchKeyword.length">
+            <a-tooltip content="点击返回标签">
+              <icon-left-circle
+                class="home_search_back"
+                @click="handleSearchBack" />
+            </a-tooltip>
+            <span>当前正在搜索 :</span>
+            <span class="home_search_text">{{ userSearchKeyword }}</span>
+          </div>
+
+          <div
+            class="home_tabList"
+            v-else>
             <a-radio-group
               v-model="currentTag"
-              @change="handleSearchKeyword"
+              @change="handleChangeType"
               type="button">
               <a-radio
                 v-for="item in tagTypeList"
-                :value="item.cid"
-                :key="item.cid">
+                :value="item.type_id"
+                :key="item.type_id">
                 {{ item.name }}
               </a-radio>
             </a-radio-group>
@@ -223,54 +279,24 @@ const handleSetWallpaper = (item) => {
             <div
               class="home_content_item"
               v-for="item in imageList"
+              @click="handlePreviewImage(item)"
               :key="item.id">
               <a-image
+                :preview="false"
                 width="340"
                 height="200"
                 class="home_content_item_image"
                 show-loader
-                :alt="item.utag"
-                :preview-props="{
-                  defaultScale: 0.7,
-                  actionsLayout: [''],
-                }"
-                :src="`${item.url_thumb}?timestamp=${timestamp}`">
-                <template #preview-actions>
-                  <a-image-preview-action
-                    name="下载高清原图到本地"
-                    @click="handleDownloadImage(item)">
-                    <icon-cloud-download />
-                    下载原图
-                  </a-image-preview-action>
-
-                  <a-image-preview-action
-                    name="复制图片到剪贴板中"
-                    @click="handleCopyImage(item)">
-                    <icon-copy />
-                    复制图片
-                  </a-image-preview-action>
-
-                  <a-image-preview-action
-                    name="可将图片直接设置为壁纸"
-                    @click="handleSetWallpaper(item)">
-                    <icon-send />
-                    设为壁纸
-                  </a-image-preview-action>
-                </template>
-
+                :src="`${imageUrlPrefix}${item.coverimage}?timestamp=${timestamp}`">
                 <template #loader>
                   <img
                     width="340"
                     height="200"
                     loading="lazy"
-                    :src="item.url_thumb"
+                    :src="`${imageUrlPrefix}${item.coverimage}`"
                     style="filter: blur(5px)" />
                 </template>
               </a-image>
-
-              <div class="home_content_item_info">
-                {{ item.resolution }}
-              </div>
             </div>
           </div>
 
@@ -285,10 +311,57 @@ const handleSetWallpaper = (item) => {
         </template>
 
         <a-empty
-          description="暂无数据,请切换标签或搜索关键词"
+          description="暂无数据"
           v-else />
       </a-card>
     </a-spin>
+
+    <a-modal
+      :esc-to-close="false"
+      v-model:visible="preViewVisible">
+      <template #title> 预览图片 </template>
+      <a-image
+        :preview="false"
+        class="preView_img"
+        width="100%"
+        height="300"
+        show-loader
+        :src="`${imageUrlPrefix}${preViewDetails.coverimage}?timestamp=${timestamp}`">
+        <template #loader>
+          <img
+            width="100%"
+            height="300"
+            loading="lazy"
+            :src="`${imageUrlPrefix}${preViewDetails.coverimage}`"
+            style="filter: blur(5px)" />
+        </template>
+      </a-image>
+
+      <template #footer>
+        <div class="preView_btn_group">
+          <a-image-preview-action
+            name="下载高清原图到本地"
+            @click="handleDownloadImage(preViewDetails)">
+            <icon-cloud-download />
+            下载原图
+          </a-image-preview-action>
+
+          <a-image-preview-action
+            name="复制图片到剪贴板中"
+            @click="handleCopyImage(preViewDetails)">
+            <icon-copy />
+            复制图片
+          </a-image-preview-action>
+
+          <a-image-preview-action
+            name="可将图片直接设置为壁纸"
+            @click="handleSetWallpaper(preViewDetails)">
+            <icon-send />
+            设为壁纸
+          </a-image-preview-action>
+        </div>
+      </template>
+    </a-modal>
   </div>
 </template>
 
@@ -302,6 +375,20 @@ const handleSetWallpaper = (item) => {
       height: 100vh;
       .home_tabList {
         width: 100%;
+      }
+      .home_search_tips {
+        display: flex;
+        align-items: center;
+        .home_search_back {
+          cursor: pointer;
+          margin-right: 6px;
+          font-size: 22px;
+        }
+        .home_search_text {
+          font-weight: bold;
+          margin-left: 6px;
+          color: #1890ff;
+        }
       }
       .home_content {
         display: flex;
@@ -318,19 +405,6 @@ const handleSetWallpaper = (item) => {
             cursor: pointer;
             border-radius: 6px;
           }
-          .home_content_item_info {
-            display: flex;
-            justify-content: center;
-            background: rgba(0, 0, 0, 0.5);
-            color: #fff;
-            font-size: 12px;
-            padding: 2px 0;
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            border-bottom-left-radius: 6px;
-            border-bottom-right-radius: 6px;
-          }
         }
       }
       .home_footer {
@@ -340,5 +414,17 @@ const handleSetWallpaper = (item) => {
       }
     }
   }
+}
+
+.preView_img {
+  object-fit: contain;
+  user-select: none;
+  border-radius: 6px;
+}
+
+.preView_btn_group {
+  display: flex;
+  align-content: center;
+  justify-content: center;
 }
 </style>
