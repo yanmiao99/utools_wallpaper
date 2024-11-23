@@ -81,8 +81,6 @@ async function setWallpaper(imagePath) {
       const fileName = `wallpaper_${random}${suffix}`;
       const userLocalPath = await downloadFile(imagePath, fileName, path);
 
-      console.log('userLocalPath=======>', userLocalPath);
-
       // 更换壁纸
       if (process.platform === 'win32') {
         // Windows平台

@@ -26,3 +26,12 @@ export const globalSearch = (param) => {
     data: param,
   });
 };
+
+// 获取壁纸详情
+export const selectWallpaperById = (param) => {
+  return request({
+    method: 'get',
+    url: '/selectWallpaperById',
+    data: param,
+  });
+}

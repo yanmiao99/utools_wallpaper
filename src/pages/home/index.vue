@@ -4,6 +4,7 @@ import {
   selectWallpaperListByType,
   selectClassifyList,
   globalSearch,
+  selectWallpaperById,
 } from '@/api/wallpaper';
 import { Notification, Modal } from '@arco-design/web-vue';
 import { useSubInput } from '@/hooks/SubInput';
@@ -61,8 +62,18 @@ const preViewDetails = ref({}); // 预览图片详情
 const imageUrlPrefix = 'https://image.diannaobizhi.club'; // 图片前缀地址
 
 // 预览图片
-const handlePreviewImage = (item) => {
-  preViewDetails.value = item;
+const handlePreviewImage = async (item) => {
+  const res = await selectWallpaperById({
+    page: 1,
+    pagesize: 5,
+    wallpaper_id: item.id,
+    openid: 'oGkO_5d8kqjhyH-BS_FMR2vMGdJU',
+    appid,
+    isshowad: 0,
+    label_id: '',
+  });
+  console.log('res=======>', res);
+  preViewDetails.value = res.info;
   preViewVisible.value = true;
 };
 
@@ -111,7 +122,7 @@ const handleSearchKeywordData = async () => {
     const tempList = [];
     res.list.forEach((item) => {
       tempList.push({
-        id: item.id,
+        id: item.wallpaper.id,
         coverimage: item.wallpaper.coverimage,
         coverimageDetail: item.wallpaper.coverimageDetail,
       });
@@ -152,38 +163,45 @@ const handlePageChange = (value) => {
 
 // 下载图片
 const handleDownloadImage = (item) => {
-  const downloadImagePath = imageUrlPrefix + item.coverimageDetail;
+  const downloadImagePath = imageUrlPrefix + item.image;
 
-  Notification.info({
-    id: 'downloadImage',
-    content: '图片下载中,请稍等...',
+  Modal.confirm({
     title: '提示',
+    content: '确认将该图片设置为壁纸吗？',
+    onOk() {
+      Notification.info({
+        id: 'downloadImage',
+        content: '原图比较大,需要一些时间下载,请稍等...',
+        title: '提示',
+      });
+      const path = utools.getPath('downloads');
+      // 匹配图片后缀是否有 .jpg .png .jpeg .webp .git
+      const suffix = downloadImagePath.match(/\.(jpg|png|jpeg|webp|gif)$/)[0];
+      const name = `${item.id}${suffix}`;
+      window.preload
+        .downloadFile(downloadImagePath, name, path)
+        .then(() => {
+          Notification.success({
+            id: 'downloadImage',
+            content: '图片下载成功',
+            title: '提示',
+          });
+        })
+        .catch(() => {
+          Notification.error({
+            id: 'downloadImage',
+            content: '图片下载失败',
+            title: '提示',
+          });
+        });
+    },
   });
-  const path = utools.getPath('downloads');
-  // 匹配图片后缀是否有 .jpg .png .jpeg .webp .git
-  const suffix = downloadImagePath.match(/\.(jpg|png|jpeg|webp|gif)$/)[0];
-  const name = `${item.id}${suffix}`;
-  window.preload
-    .downloadFile(downloadImagePath, name, path)
-    .then(() => {
-      Notification.success({
-        id: 'downloadImage',
-        content: '图片下载成功',
-        title: '提示',
-      });
-    })
-    .catch(() => {
-      Notification.error({
-        id: 'downloadImage',
-        content: '图片下载失败',
-        title: '提示',
-      });
-    });
 };
 
 // 复制图片
 const handleCopyImage = (item) => {
-  const downloadImagePath = imageUrlPrefix + item.coverimageDetail;
+  const downloadImagePath = imageUrlPrefix + item.coverimage;
+
   // 将 webp 使用 canvas 转换成 base64
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
@@ -206,7 +224,7 @@ const handleCopyImage = (item) => {
 
 // 设为壁纸
 const handleSetWallpaper = (item) => {
-  const downloadImagePath = imageUrlPrefix + item.coverimageDetail;
+  const downloadImagePath = imageUrlPrefix + item.image;
 
   Modal.confirm({
     title: '提示',
@@ -214,7 +232,7 @@ const handleSetWallpaper = (item) => {
     onOk() {
       Notification.info({
         id: 'setWallpaper',
-        content: '壁纸设置中,请稍等...',
+        content: '壁纸原图比较大,需要一些时间设置,请稍等...',
         title: '提示',
       });
       window.preload
@@ -236,6 +254,14 @@ const handleSetWallpaper = (item) => {
     },
   });
 };
+
+// 云盘超高清图
+// const handleCloudDown = (item) => {
+//   // 提取 link 中 surl= 后面的字符
+//   const cloudLink = item.baiduwangpan1.match(/surl=([^&]*)/)[1];
+//   const resLink = `https://pan.baidu.com/s/${cloudLink}`;
+//   utools.shellOpenExternal(resLink);
+// }
 </script>
 
 <template>
@@ -285,6 +311,7 @@ const handleSetWallpaper = (item) => {
                 :preview="false"
                 width="340"
                 height="200"
+                fit="cover"
                 class="home_content_item_image"
                 show-loader
                 :src="`${imageUrlPrefix}${item.coverimage}?timestamp=${timestamp}`">
@@ -294,7 +321,10 @@ const handleSetWallpaper = (item) => {
                     height="200"
                     loading="lazy"
                     :src="`${imageUrlPrefix}${item.coverimage}`"
-                    style="filter: blur(5px)" />
+                    :style="{
+                      filter: 'blur(5px)',
+                      objectFit: 'cover',
+                    }" />
                 </template>
               </a-image>
             </div>
@@ -320,29 +350,54 @@ const handleSetWallpaper = (item) => {
       :esc-to-close="false"
       v-model:visible="preViewVisible">
       <template #title> 预览图片 </template>
-      <a-image
-        :preview="false"
-        class="preView_img"
-        width="100%"
-        height="300"
-        show-loader
-        :src="`${imageUrlPrefix}${preViewDetails.coverimage}?timestamp=${timestamp}`">
-        <template #loader>
-          <img
-            width="100%"
-            height="300"
-            loading="lazy"
-            :src="`${imageUrlPrefix}${preViewDetails.coverimage}`"
-            style="filter: blur(5px)" />
-        </template>
-      </a-image>
+
+      <div class="preView_content">
+        <a-image
+          :preview="false"
+          class="preView_img"
+          width="100%"
+          height="300"
+          show-loader
+          fit="cover"
+          :src="`${imageUrlPrefix}${preViewDetails?.coverimage}?timestamp=${timestamp}`">
+          <template #loader>
+            <img
+              width="100%"
+              height="300"
+              loading="lazy"
+              :src="`${imageUrlPrefix}${preViewDetails?.coverimage}`"
+              :style="{
+                filter: 'blur(5px)',
+                objectFit: 'cover',
+              }" />
+          </template>
+        </a-image>
+
+        <div class="preView_info">
+          <div class="preView_text">
+            <span>图片尺寸：</span>
+            <span>
+              {{ preViewDetails.imagewidth }}
+              x
+              {{ preViewDetails.imageheight }}
+            </span>
+          </div>
+
+          <div class="preView_text">
+            <span>原图大小：</span>
+            <span>
+              {{ (preViewDetails.newimagefilesize / 1024 / 1024) | toFixed }} MB
+            </span>
+          </div>
+        </div>
+      </div>
 
       <template #footer>
         <div class="preView_btn_group">
           <a-image-preview-action
             name="下载高清原图到本地"
             @click="handleDownloadImage(preViewDetails)">
-            <icon-cloud-download />
+            <icon-download />
             下载原图
           </a-image-preview-action>
 
@@ -403,7 +458,7 @@ const handleSetWallpaper = (item) => {
           }
           .home_content_item_image {
             cursor: pointer;
-            border-radius: 6px;
+            border-radius: 4px;
           }
         }
       }
@@ -416,10 +471,23 @@ const handleSetWallpaper = (item) => {
   }
 }
 
-.preView_img {
-  object-fit: contain;
-  user-select: none;
-  border-radius: 6px;
+.preView_content {
+  position: relative;
+  .preView_img {
+    object-fit: contain;
+    user-select: none;
+    border-radius: 4px;
+  }
+  .preView_info {
+    display: flex;
+    align-content: center;
+    justify-content: space-between;
+    margin-top: 10px;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 6px;
+    border-radius: 4px;
+  }
 }
 
 .preView_btn_group {
