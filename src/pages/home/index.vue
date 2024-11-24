@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="jsx">
 import { ref, onMounted } from 'vue';
 import {
   selectWallpaperListByType,
@@ -32,10 +32,10 @@ onSearch((val) => {
 });
 
 const tagTypeList = ref([
-  { name: '最新', type_id: 1 },
+  { name: '最近更新', type_id: 1 },
   { name: '24H热门', type_id: 2 },
-  { name: '周排行', type_id: 3 },
-  { name: '月排行', type_id: 4 },
+  { name: '本周排行', type_id: 3 },
+  { name: '当月排行', type_id: 4 },
 ]);
 
 onMounted(() => {
@@ -72,7 +72,6 @@ const handlePreviewImage = async (item) => {
     isshowad: 0,
     label_id: '',
   });
-  console.log('res=======>', res);
   preViewDetails.value = res.info;
   preViewVisible.value = true;
 };
@@ -167,14 +166,25 @@ const handleDownloadImage = (item) => {
 
   Modal.confirm({
     title: '提示',
-    content: '确认将该图片设置为壁纸吗？',
+    content: `原图较大,共(${(item.newimagefilesize / 1024 / 1024).toFixed(
+      2
+    )})MB, 确认下载该图片吗？`,
     onOk() {
       Notification.info({
         id: 'downloadImage',
         content: '原图比较大,需要一些时间下载,请稍等...',
         title: '提示',
+        duration: 4000,
       });
-      const path = utools.getPath('downloads');
+      // 获取下载路径
+      let path = '';
+      const downloadPath = window.utools.dbStorage.getItem('downloadPath');
+      if (downloadPath) {
+        path = downloadPath;
+      } else {
+        path = utools.getPath('downloads');
+      }
+
       // 匹配图片后缀是否有 .jpg .png .jpeg .webp .git
       const suffix = downloadImagePath.match(/\.(jpg|png|jpeg|webp|gif)$/)[0];
       const name = `${item.id}${suffix}`;
@@ -185,6 +195,15 @@ const handleDownloadImage = (item) => {
             id: 'downloadImage',
             content: '图片下载成功',
             title: '提示',
+            duration: 5000,
+            footer: (
+              <div
+                onClick={() => {
+                  utools.shellOpenItem(path);
+                }}>
+                点击打开下载目录
+              </div>
+            ),
           });
         })
         .catch(() => {
@@ -228,12 +247,14 @@ const handleSetWallpaper = (item) => {
 
   Modal.confirm({
     title: '提示',
-    content: '确认将该图片设置为壁纸吗？',
+    content:
+      '确认将该图片设置为壁纸吗？(提示 : 如果设置不成功, 请手动下载原图自行设置)',
     onOk() {
       Notification.info({
         id: 'setWallpaper',
         content: '壁纸原图比较大,需要一些时间设置,请稍等...',
         title: '提示',
+        duration: 4000,
       });
       window.preload
         .setWallpaper(downloadImagePath)
@@ -386,7 +407,8 @@ const handleSetWallpaper = (item) => {
           <div class="preView_text">
             <span>原图大小：</span>
             <span>
-              {{ (preViewDetails.newimagefilesize / 1024 / 1024) | toFixed }} MB
+              {{ (preViewDetails.newimagefilesize / 1024 / 1024).toFixed(2) }}
+              MB
             </span>
           </div>
         </div>

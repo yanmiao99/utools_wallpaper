@@ -21,12 +21,12 @@
           关于
         </a-menu-item>
 
-        <!-- <a-menu-item key="/setting">
+        <a-menu-item key="/setting">
           <template #icon>
             <IconSettings />
           </template>
           设置
-        </a-menu-item> -->
+        </a-menu-item>
       </a-menu>
     </a-layout-sider>
     <a-layout-content class="container">
@@ -71,6 +71,7 @@ utools.onPluginEnter((action) => {
   detach.value = utools.getWindowType() !== 'main';
 });
 </script>
+
 <style scoped lang="less">
 .main {
   position: fixed;
