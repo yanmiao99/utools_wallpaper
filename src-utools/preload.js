@@ -56,7 +56,6 @@ async function downloadFile(currentFile, fileName, userSavePath) {
         response.pipe(file);
         file.on('finish', function () {
           file.close();
-          console.log('文件已经下载到本地');
           resolve(downloadPath);
         });
         file.on('error', function (err) {

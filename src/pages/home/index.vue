@@ -17,9 +17,7 @@ const { subInput, setSubInput, onChanged, onSearch, onClear } = useSubInput(
   true
 );
 
-onChanged((val) => {
-  // console.log('子输入框内容变更：', val);
-});
+onChanged((val) => {});
 
 onClear(() => {
   handleSearchBack();
@@ -110,7 +108,6 @@ const getClassifyData = async () => {
   const res = await selectClassifyList({
     zone_id: 1,
   });
-  console.log('分类列表：', res);
 };
 
 // 搜索关键词
@@ -261,8 +258,7 @@ const handleCopyImage = (item) => {
 // 设为壁纸
 const handleSetWallpaper = (item) => {
   if (isLoading.value) return;
-
-  const downloadImagePath = imageUrlPrefix + item.image;
+  const downloadImagePath = imageUrlPrefix + item.coverimage;
 
   Modal.confirm({
     title: '提示',
@@ -316,7 +312,6 @@ watch(preViewVisible, (val) => {
 
 // 按下左右按键翻页
 const handleKeyDown = (e) => {
-  console.log('e=======>', e);
   if (e.keyCode === 37) {
     if (imageListCurrent.value > 1) {
       imageListCurrent.value -= 1;

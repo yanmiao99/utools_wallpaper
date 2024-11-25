@@ -30,7 +30,7 @@
       </a-menu>
     </a-layout-sider>
     <a-layout-content class="container">
-        <router-view />
+      <router-view />
     </a-layout-content>
   </a-layout>
 </template>
@@ -67,7 +67,6 @@ useDark({
 });
 
 utools.onPluginEnter((action) => {
-  console.log(action);
   detach.value = utools.getWindowType() !== 'main';
 });
 </script>
