@@ -1,14 +1,14 @@
-import Constant from "@/global/Constant";
+import Constant from '@/global/constant';
 
 /**
  * 关键字
  */
 export interface Feature {
-    code: string,
-    explain: string,
-    platform: FeaturePlatform | Array<FeaturePlatform>,
-    icon?: string,
-    cmds: Array<string | FeatureCmd>
+  code: string;
+  explain: string;
+  platform: FeaturePlatform | Array<FeaturePlatform>;
+  icon?: string;
+  cmds: Array<string | FeatureCmd>;
 }
 
 /**
@@ -20,12 +20,12 @@ export type FeaturePlatform = 'darwin' | 'win32' | 'linux';
  * 关键字设置
  */
 export interface FeatureCmd {
-    type: FeatureCmdType,
-    label: string,
-    fileType?: FeatureCmdFileType,
-    match?: string,
-    minLength?: number
-    maxLength?: number
+  type: FeatureCmdType;
+  label: string;
+  fileType?: FeatureCmdFileType;
+  match?: string;
+  minLength?: number;
+  maxLength?: number;
 }
 
 export type FeatureCmdType = 'img' | 'files' | 'regex' | 'over' | 'window';
@@ -37,18 +37,17 @@ export type FeatureCmdFileType = 'file' | 'directory';
  * @param code code
  * @param cmd 关键字
  */
-export function setFeatureOneSimple(code: string, cmd: FeatureCmd | string): boolean {
-    return utools.setFeature({
-        code: code,
-        explain: Constant.name,
-        icon: "public/logo.png",
-        platform: [
-            "win32",
-            "darwin",
-            "linux"
-        ],
-        cmds: [cmd]
-    });
+export function setFeatureOneSimple(
+  code: string,
+  cmd: FeatureCmd | string
+): boolean {
+  return utools.setFeature({
+    code: code,
+    explain: Constant.name,
+    icon: 'public/logo.png',
+    platform: ['win32', 'darwin', 'linux'],
+    cmds: [cmd],
+  });
 }
 
 /**
@@ -56,7 +55,7 @@ export function setFeatureOneSimple(code: string, cmd: FeatureCmd | string): boo
  * @param feature 关键字
  */
 export function setFeatureOne(feature: Feature) {
-    return utools.setFeature(feature);
+  return utools.setFeature(feature);
 }
 
 /**
@@ -64,17 +63,17 @@ export function setFeatureOne(feature: Feature) {
  * @param code feature的code
  */
 export function getFeatureOne(code: string): Feature | null {
-    const features = utools.getFeatures([code]);
-    if (features.length === 0) {
-        return null;
-    }
-    for (let feature of features) {
-        if (feature.code === code) {
-            // @ts-ignore
-            return feature;
-        }
-    }
+  const features = utools.getFeatures([code]);
+  if (features.length === 0) {
     return null;
+  }
+  for (let feature of features) {
+    if (feature.code === code) {
+      // @ts-ignore
+      return feature;
+    }
+  }
+  return null;
 }
 
 /**
@@ -82,7 +81,7 @@ export function getFeatureOne(code: string): Feature | null {
  * @param code code
  */
 export function removeFeatureOne(code: string): boolean {
-    return utools.removeFeature(code);
+  return utools.removeFeature(code);
 }
 
 /**
@@ -90,16 +89,19 @@ export function removeFeatureOne(code: string): boolean {
  * @param prefix 前缀/数组
  * @param keys 如果prefix是数组，则此参数无效
  */
-export function listFeature(prefix: string | string[], keys?: Array<any>): Array<string> {
-    let features;
-    if (typeof prefix === 'string') {
-        if (keys) {
-            features = utools.getFeatures(keys.map(key => prefix + key));
-        } else {
-            features = utools.getFeatures([prefix]);
-        }
+export function listFeature(
+  prefix: string | string[],
+  keys?: Array<any>
+): Array<string> {
+  let features;
+  if (typeof prefix === 'string') {
+    if (keys) {
+      features = utools.getFeatures(keys.map((key) => prefix + key));
     } else {
-        features = utools.getFeatures(prefix);
+      features = utools.getFeatures([prefix]);
     }
-    return features.map(feature => feature.code);
+  } else {
+    features = utools.getFeatures(prefix);
+  }
+  return features.map((feature) => feature.code);
 }

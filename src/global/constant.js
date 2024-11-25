@@ -1,5 +1,6 @@
 export default {
   id: 'global',
+  name:'全局配置',
 };
 
 export const IMAGE_URL_PREFIX = 'https://image.diannaobizhi.club';
