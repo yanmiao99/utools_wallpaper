@@ -8,6 +8,8 @@ import {
 } from '@/api/wallpaper';
 import { Notification, Modal } from '@arco-design/web-vue';
 import { useSubInput } from '@/hooks/SubInput';
+import { useLoading } from '@/hooks/useLoading.js';
+const { isLoading, loadingText, showLoading, hideLoading } = useLoading();
 
 const { subInput, setSubInput, onChanged, onSearch, onClear } = useSubInput(
   '',
@@ -162,6 +164,8 @@ const handlePageChange = (value) => {
 
 // 下载图片
 const handleDownloadImage = (item) => {
+  if (isLoading.value) return;
+
   const downloadImagePath = imageUrlPrefix + item.image;
 
   Modal.confirm({
@@ -170,6 +174,7 @@ const handleDownloadImage = (item) => {
       2
     )})MB, 确认下载该图片吗？`,
     onOk() {
+      showLoading('壁纸下载中...');
       Notification.info({
         id: 'downloadImage',
         content: '原图比较大,需要一些时间下载,请稍等...',
@@ -212,6 +217,9 @@ const handleDownloadImage = (item) => {
             content: '图片下载失败',
             title: '提示',
           });
+        })
+        .finally(() => {
+          hideLoading();
         });
     },
   });
@@ -219,6 +227,8 @@ const handleDownloadImage = (item) => {
 
 // 复制图片
 const handleCopyImage = (item) => {
+  if (isLoading.value) return;
+
   const downloadImagePath = imageUrlPrefix + item.coverimage;
 
   // 将 webp 使用 canvas 转换成 base64
@@ -243,6 +253,8 @@ const handleCopyImage = (item) => {
 
 // 设为壁纸
 const handleSetWallpaper = (item) => {
+  if (isLoading.value) return;
+
   const downloadImagePath = imageUrlPrefix + item.image;
 
   Modal.confirm({
@@ -250,6 +262,7 @@ const handleSetWallpaper = (item) => {
     content:
       '确认将该图片设置为壁纸吗？(提示 : 如果设置不成功, 请手动下载原图自行设置)',
     onOk() {
+      showLoading('壁纸设置中...');
       Notification.info({
         id: 'setWallpaper',
         content: '壁纸原图比较大,需要一些时间设置,请稍等...',
@@ -271,6 +284,9 @@ const handleSetWallpaper = (item) => {
             content: '壁纸设置失败',
             title: '提示',
           });
+        })
+        .finally(() => {
+          hideLoading();
         });
     },
   });
@@ -372,52 +388,57 @@ const handleSetWallpaper = (item) => {
       v-model:visible="preViewVisible">
       <template #title> 预览图片 </template>
 
-      <div class="preView_content">
-        <a-image
-          :preview="false"
-          class="preView_img"
-          width="100%"
-          height="300"
-          show-loader
-          fit="cover"
-          :src="`${imageUrlPrefix}${preViewDetails?.coverimage}?timestamp=${timestamp}`">
-          <template #loader>
-            <img
-              width="100%"
-              height="300"
-              loading="lazy"
-              :src="`${imageUrlPrefix}${preViewDetails?.coverimage}`"
-              :style="{
-                filter: 'blur(5px)',
-                objectFit: 'cover',
-              }" />
-          </template>
-        </a-image>
+      <a-spin
+        style="width: 100%"
+        :loading="isLoading"
+        :tip="loadingText">
+        <div class="preView_content">
+          <a-image
+            :preview="false"
+            class="preView_img"
+            width="100%"
+            height="300"
+            show-loader
+            fit="cover"
+            :src="`${imageUrlPrefix}${preViewDetails?.coverimage}?timestamp=${timestamp}`">
+            <template #loader>
+              <img
+                width="100%"
+                height="300"
+                loading="lazy"
+                :src="`${imageUrlPrefix}${preViewDetails?.coverimage}`"
+                :style="{
+                  filter: 'blur(5px)',
+                  objectFit: 'cover',
+                }" />
+            </template>
+          </a-image>
 
-        <div class="preView_info">
-          <div class="preView_text">
-            <span>图片尺寸：</span>
-            <span>
-              {{ preViewDetails.imagewidth }}
-              x
-              {{ preViewDetails.imageheight }}
-            </span>
-          </div>
+          <div class="preView_info">
+            <div class="preView_text">
+              <span>图片尺寸：</span>
+              <span>
+                {{ preViewDetails.imagewidth }}
+                x
+                {{ preViewDetails.imageheight }}
+              </span>
+            </div>
 
-          <div class="preView_text">
-            <span>原图大小：</span>
-            <span>
-              {{ (preViewDetails.newimagefilesize / 1024 / 1024).toFixed(2) }}
-              MB
-            </span>
+            <div class="preView_text">
+              <span>原图大小：</span>
+              <span>
+                {{ (preViewDetails.newimagefilesize / 1024 / 1024).toFixed(2) }}
+                MB
+              </span>
+            </div>
           </div>
         </div>
-      </div>
-
+      </a-spin>
       <template #footer>
         <div class="preView_btn_group">
           <a-image-preview-action
             name="下载高清原图到本地"
+            :disabled="isLoading"
             @click="handleDownloadImage(preViewDetails)">
             <icon-download />
             下载原图
@@ -425,6 +446,7 @@ const handleSetWallpaper = (item) => {
 
           <a-image-preview-action
             name="复制图片到剪贴板中"
+            :disabled="isLoading"
             @click="handleCopyImage(preViewDetails)">
             <icon-copy />
             复制图片
@@ -432,6 +454,7 @@ const handleSetWallpaper = (item) => {
 
           <a-image-preview-action
             name="可将图片直接设置为壁纸"
+            :disabled="isLoading"
             @click="handleSetWallpaper(preViewDetails)">
             <icon-send />
             设为壁纸
