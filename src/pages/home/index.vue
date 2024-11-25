@@ -23,6 +23,7 @@ onChanged((val) => {
 
 onClear(() => {
   handleSearchBack();
+  preViewVisible.value = false;
 });
 
 const userSearchKeyword = ref(''); // 用户输入的搜索关键词
@@ -31,6 +32,7 @@ onSearch((val) => {
   userSearchKeyword.value = val;
   imageListCurrent.value = 1;
   handleSearchKeywordData();
+  preViewVisible.value = false;
 });
 
 const tagTypeList = ref([
