@@ -1,5 +1,5 @@
 <script setup lang="jsx">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import {
   selectWallpaperListByType,
   selectClassifyList,
@@ -299,6 +299,13 @@ const handleSetWallpaper = (item) => {
 //   const resLink = `https://pan.baidu.com/s/${cloudLink}`;
 //   utools.shellOpenExternal(resLink);
 // }
+
+// 监听 preViewVisible , 然后执行 hideLoading
+watch(preViewVisible, (val) => {
+  if (!val) {
+    hideLoading();
+  }
+});
 </script>
 
 <template>

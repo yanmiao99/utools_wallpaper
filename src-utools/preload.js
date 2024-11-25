@@ -85,11 +85,9 @@ async function setWallpaper(imagePath) {
       if (process.platform === 'win32') {
         // Windows平台
         try {
-          // 使用系统命令设置壁纸
-          const command = `powershell -Command "& {Set-ItemProperty -Path 'HKCU:\\Control Panel\\Desktop\' -Name Wallpaper -Value '${escapeImagePath(
-            userLocalPath
-          )}'}"`;
-          execSync(command, { stdio: 'ignore' });
+          // 使用 execSync 相关的方法, 执行windows 更换壁纸的命令 , 并且需要兜底处理, 防止出错
+          execSync(`reg add "HKEY_CURRENT_USER\\Control Panel\\Desktop" /v Wallpaper /t REG_SZ /d "${userLocalPath}" /f`);
+          execSync(`RUNDLL32.EXE user32.dll,UpdatePerUserSystemParameters`);
           resolve('Windows壁纸更换成功');
         } catch (error) {
           reject('Windows更换壁纸失败');
