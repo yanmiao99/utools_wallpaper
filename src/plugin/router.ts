@@ -20,6 +20,16 @@ const router = createRouter({
       component: () => import('@/pages/about/index.vue'),
     },
     {
+      name: '分类',
+      path: '/classify',
+      component: () => import('@/pages/classify/index.vue'),
+    },
+    {
+      name: '分类详情',
+      path: '/classifyDetails',
+      component: () => import('@/pages/classifyDetails/index.vue'),
+    },
+    {
       name: '设置',
       path: '/setting',
       component: () => import('@/pages/setting/index.vue'),

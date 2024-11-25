@@ -35,3 +35,21 @@ export const selectWallpaperById = (param) => {
     data: param,
   });
 }
+
+// 小分类
+export const selectLabelListbyClassify = (param) => {
+  return request({
+    method: 'get',
+    url: '/selectLabelListbyClassify',
+    data: param,
+  });
+}
+
+// 分类详情
+export const selectWallpaperByLabelId = (param) => {
+  return request({
+    method: 'get',
+    url: '/selectWallpaperByLabelId',
+    data: param,
+  });
+}

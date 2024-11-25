@@ -14,6 +14,13 @@
           主页
         </a-menu-item>
 
+        <a-menu-item key="/classify">
+          <template #icon>
+            <iconStorage />
+          </template>
+          分类
+        </a-menu-item>
+
         <a-menu-item key="/about">
           <template #icon>
             <IconRobot />

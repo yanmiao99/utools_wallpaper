@@ -1,55 +1,42 @@
 <script setup lang="jsx">
 import { ref, onMounted, watch, onUnmounted } from 'vue';
 import {
-  selectWallpaperListByType,
-  globalSearch,
+  selectLabelListbyClassify,
+  selectWallpaperByLabelId,
   selectWallpaperById,
 } from '@/api/wallpaper';
 import { Notification, Modal } from '@arco-design/web-vue';
-import { useSubInput } from '@/hooks/SubInput';
 import { IMAGE_URL_PREFIX, APPID } from '@/global/constant.js';
 import { useLoading } from '@/hooks/useLoading.js';
 const { isLoading, loadingText, showLoading, hideLoading } = useLoading();
-
-const { subInput, setSubInput, onChanged, onSearch, onClear } = useSubInput(
-  '',
-  '搜一搜，回车键确认',
-  true
-);
-
-onChanged((val) => {});
-
-onClear(() => {
-  handleSearchBack();
-  preViewVisible.value = false;
-});
-
-const userSearchKeyword = ref(''); // 用户输入的搜索关键词
-
-onSearch((val) => {
-  userSearchKeyword.value = val;
-  imageListCurrent.value = 1;
-  handleSearchKeywordData();
-  preViewVisible.value = false;
-});
-
-const tagTypeList = ref([
-  { name: '最近更新', type_id: 1 },
-  { name: '24H热门', type_id: 2 },
-  { name: '本周排行', type_id: 3 },
-  { name: '当月排行', type_id: 4 },
-]);
+import { useRoute, useRouter } from 'vue-router';
+const route = useRoute();
+const router = useRouter();
 
 onMounted(() => {
-  getImageData();
+  // 获取分类
+  const classify_id = route.query.classify_id;
+  getSmallClassifyData(classify_id);
   document.addEventListener('keydown', handleKeyDown);
 });
+
+// 获取小分类数据
+const getSmallClassifyData = async (classify_id) => {
+  const res = await selectLabelListbyClassify({
+    classify_id,
+  });
+  // 最多只取 res 的前8条数据
+  smallClassifyList.value = res.slice(0, 8);
+  currentClassify.value = res[0].lable_id;
+  getImageData();
+};
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleKeyDown);
 });
 
-const currentTag = ref(tagTypeList.value[0].type_id); // 当前标签
+const smallClassifyList = ref([]); // 小分类
+const currentClassify = ref(''); // 当前分类
 
 const imageList = ref([]); // 图片列表
 const imageListTotal = ref(0); // 图片总数
@@ -87,32 +74,12 @@ const getImageData = async () => {
     let param = {
       page: imageListCurrent.value,
       pagesize: imageListPageSize.value,
-      type_id: currentTag.value,
+      label_id: currentClassify.value,
       appid: APPID,
       zone_id: 1,
-    };
-    const res = await selectWallpaperListByType(param);
-    imageList.value = res.list;
-    imageListTotal.value = res.total;
-  } finally {
-    imageLoading.value = false;
-  }
-};
-
-// 搜索关键词
-const handleSearchKeywordData = async () => {
-  timestamp.value = Date.now();
-  imageLoading.value = true;
-  try {
-    const res = await globalSearch({
-      page: imageListCurrent.value,
-      pagesize: imageListPageSize.value,
       sort: 1,
-      label_id: '',
-      appid: APPID,
-      zone_id: 1,
-      keyword: userSearchKeyword.value,
-    });
+    };
+    const res = await selectWallpaperByLabelId(param);
     const tempList = [];
     res.list.forEach((item) => {
       tempList.push({
@@ -130,33 +97,26 @@ const handleSearchKeywordData = async () => {
 
 // 返回标签
 const handleSearchBack = () => {
-  userSearchKeyword.value = '';
-  setSubInput('');
-  imageListCurrent.value = 1;
-  getImageData();
+  router.back();
 };
 
 // 切换标签
 const handleChangeType = (value) => {
-  setSubInput('');
   imageListCurrent.value = 1;
-  currentTag.value = value;
+  currentClassify.value = value;
   getImageData();
 };
 
 // 分页
 const handlePageChange = (value) => {
   imageListCurrent.value = value;
-
-  if (userSearchKeyword.value) {
-    handleSearchKeywordData();
-  } else {
-    getImageData();
-  }
+  getImageData();
 };
 
 // 下载图片
 const handleDownloadImage = (item) => {
+  console.log('item=======>', item);
+
   if (isLoading.value) return;
 
   const downloadImagePath = IMAGE_URL_PREFIX + item.image;
@@ -326,32 +286,29 @@ const handleKeyDown = (e) => {
       tip="数据加载中...">
       <a-card class="home_card">
         <template #title>
-          <div
-            class="home_search_tips"
-            v-if="userSearchKeyword.length">
+          <div class="home_search_tips">
             <a-tooltip content="点击返回标签">
-              <icon-left-circle
-                class="home_search_back"
-                @click="handleSearchBack" />
+              <div
+                class="home_search_box"
+                @click="handleSearchBack">
+                <icon-left-circle class="home_search_back" />
+                <span class="home_search_text">返回</span>
+              </div>
             </a-tooltip>
-            <span>当前正在搜索 :</span>
-            <span class="home_search_text">{{ userSearchKeyword }}</span>
-          </div>
 
-          <div
-            class="home_tabList"
-            v-else>
-            <a-radio-group
-              v-model="currentTag"
-              @change="handleChangeType"
-              type="button">
-              <a-radio
-                v-for="item in tagTypeList"
-                :value="item.type_id"
-                :key="item.type_id">
-                {{ item.name }}
-              </a-radio>
-            </a-radio-group>
+            <div class="home_tabList">
+              <a-radio-group
+                v-model="currentClassify"
+                @change="handleChangeType"
+                type="button">
+                <a-radio
+                  v-for="item in smallClassifyList"
+                  :value="item.lable_id"
+                  :key="item.lable_id">
+                  {{ item.label.name }}
+                </a-radio>
+              </a-radio-group>
+            </div>
           </div>
         </template>
         <template v-if="imageList.length">
@@ -498,15 +455,19 @@ const handleKeyDown = (e) => {
       .home_search_tips {
         display: flex;
         align-items: center;
-        .home_search_back {
+        cursor: pointer;
+        .home_search_box {
+          display: flex;
+          align-items: center;
           cursor: pointer;
-          margin-right: 6px;
-          font-size: 22px;
-        }
-        .home_search_text {
-          font-weight: bold;
-          margin-left: 6px;
-          color: #1890ff;
+          .home_search_back {
+            margin-right: 6px;
+            font-size: 22px;
+          }
+          .home_search_text {
+            font-size: 16px;
+            margin-right: 6px;
+          }
         }
       }
       .home_content {
