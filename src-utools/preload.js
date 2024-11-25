@@ -1,4 +1,4 @@
-const { readFile, createWriteStream, unlinkSync } = require('fs');
+const { readFile, createWriteStream, unlinkSync,readdirSync } = require('fs');
 const { basename, join } = require('path');
 const { execSync } = require('child_process');
 const https = require('https');
@@ -117,8 +117,29 @@ function escapeImagePath(path) {
   return path.replace(/\\/g, '\\\\').replace(/ /g, '\\ ');
 }
 
+// 清空图片文件夹中所有 wallpaper_ 开头的文件
+async function clearWallpaper() {
+  return new Promise((resolve, reject) => {
+    try {
+      // 使用 node 的 fs 模块, 读取文件夹中的所有文件, 然后删除以 wallpaper_ 开头的文件
+      const path = utools.getPath('pictures');
+      const files = readdirSync(path || '');
+
+      files.forEach((file) => {
+        if (file.startsWith('wallpaper_') && /\.(jpg|png|jpeg|webp|gif)$/.test(file)) {
+          unlinkSync(join(path, file));
+        }
+      });
+      resolve('清空壁纸文件夹成功');
+    } catch (error) {
+      reject('清空壁纸文件夹失败');
+    }
+  });
+}
+
 window.preload = {
   openFile,
   downloadFile,
   setWallpaper,
+  clearWallpaper
 };

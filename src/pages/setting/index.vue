@@ -36,6 +36,24 @@ const setDefaultSavePath = () => {
     content: '壁纸默认下载保存路径设置成功',
   });
 };
+
+// 清空壁纸缓存
+const clearWallpaperCache = () => {
+  window.preload
+    .clearWallpaper()
+    .then(() => {
+      Notification.success({
+        title: '成功',
+        content: '壁纸缓存清空成功',
+      });
+    })
+    .catch((err) => {
+      Notification.error({
+        title: '失败',
+        content: '壁纸缓存清空失败',
+      });
+    });
+};
 </script>
 
 <template>
@@ -56,6 +74,22 @@ const setDefaultSavePath = () => {
           选择路径
         </a-button>
       </div>
+    </a-space>
+
+    <a-divider></a-divider>
+
+    <a-space
+      direction="vertical"
+      style="width: 100%">
+      <div style="font-weight: bold">清空壁纸缓存 :</div>
+
+      <a-popconfirm
+        content="清空缓存后，将会删除所有已缓存的壁纸，并且有可能导致当前的壁纸失效，是否继续?"
+        ok-text="继续"
+        cancel-text="取消"
+        @ok="clearWallpaperCache">
+        <a-button type="primary"> 清空缓存 </a-button>
+      </a-popconfirm>
     </a-space>
   </div>
 </template>
