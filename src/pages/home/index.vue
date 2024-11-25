@@ -1,5 +1,5 @@
 <script setup lang="jsx">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, onUnmounted } from 'vue';
 import {
   selectWallpaperListByType,
   selectClassifyList,
@@ -44,6 +44,11 @@ const tagTypeList = ref([
 
 onMounted(() => {
   getImageData();
+  document.addEventListener('keydown', handleKeyDown);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeyDown);
 });
 
 const currentTag = ref(tagTypeList.value[0].type_id); // 当前标签
@@ -308,6 +313,25 @@ watch(preViewVisible, (val) => {
     hideLoading();
   }
 });
+
+// 按下左右按键翻页
+const handleKeyDown = (e) => {
+  console.log('e=======>', e);
+  if (e.keyCode === 37) {
+    if (imageListCurrent.value > 1) {
+      imageListCurrent.value -= 1;
+      handlePageChange(imageListCurrent.value);
+    }
+  } else if (e.keyCode === 39) {
+    if (
+      imageListCurrent.value <
+      Math.ceil(imageListTotal.value / imageListPageSize.value)
+    ) {
+      imageListCurrent.value += 1;
+      handlePageChange(imageListCurrent.value);
+    }
+  }
+};
 </script>
 
 <template>
@@ -376,14 +400,16 @@ watch(preViewVisible, (val) => {
             </div>
           </div>
 
-          <div class="home_footer">
-            <a-pagination
-              @change="handlePageChange"
-              :total="imageListTotal"
-              v-model:current="imageListCurrent"
-              v-model:page-size="imageListPageSize"
-              show-jumper />
-          </div>
+          <a-tooltip content="按下键盘左右键可翻页(← 上一页, → 下一页)">
+            <div class="home_footer">
+              <a-pagination
+                @change="handlePageChange"
+                :total="imageListTotal"
+                v-model:current="imageListCurrent"
+                v-model:page-size="imageListPageSize"
+                show-jumper />
+            </div>
+          </a-tooltip>
         </template>
 
         <a-empty
