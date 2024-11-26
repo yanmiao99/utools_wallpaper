@@ -57,7 +57,7 @@ const clearWallpaperCache = () => {
 </script>
 
 <template>
-  <div class="setting_wrapper">
+  <a-card style="min-height: 100vh">
     <a-space
       direction="vertical"
       style="width: 100%">
@@ -91,14 +91,7 @@ const clearWallpaperCache = () => {
         <a-button type="primary"> 清空缓存 </a-button>
       </a-popconfirm>
     </a-space>
-  </div>
+  </a-card>
 </template>
 
-<style scoped lang="less">
-.setting_wrapper {
-  padding: 20px;
-  box-sizing: border-box;
-  background-color: #fff;
-  min-height: 100vh;
-}
-</style>
+<style scoped lang="less"></style>

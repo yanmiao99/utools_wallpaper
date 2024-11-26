@@ -21,7 +21,7 @@ const fnList = ref([
 </script>
 
 <template>
-  <div class="about_wrapper">
+  <a-card>
     <a-list>
       <template #header> 功能列表 </template>
       <a-list-item
@@ -30,13 +30,7 @@ const fnList = ref([
         {{ item }}
       </a-list-item>
     </a-list>
-  </div>
+  </a-card>
 </template>
 
-<style scoped lang="less">
-.about_wrapper {
-  padding: 20px;
-  box-sizing: border-box;
-  background-color: #fff;
-}
-</style>
+<style scoped lang="less"></style>

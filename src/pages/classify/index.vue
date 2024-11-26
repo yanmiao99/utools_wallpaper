@@ -36,7 +36,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="classify_wrapper">
+  <a-card style="min-height: 100vh">
     <div
       class="classify_item"
       v-for="item in classifyList"
@@ -48,36 +48,31 @@ onMounted(() => {
         :alt="item.name" />
       <div class="classify_name">{{ item.name }}</div>
     </div>
-  </div>
+  </a-card>
 </template>
 
 <style scoped lang="less">
-.classify_wrapper {
-  padding: 20px;
+.classify_item {
+  display: inline-block;
+  width: 170px;
+  height: 80px;
+  text-align: center;
+  padding: 10px;
   box-sizing: border-box;
-  background-color: #fff;
-  .classify_item {
-    display: inline-block;
-    width: 170px;
-    height: 80px;
-    text-align: center;
-    padding: 10px;
-    box-sizing: border-box;
-    .classify_img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 5px;
-      transition: all 0.3s;
-      border-radius: 6px;
-      &:hover {
-        cursor: pointer;
-        transform: scale(1.05);
-      }
+  .classify_img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 5px;
+    transition: all 0.3s;
+    border-radius: 6px;
+    &:hover {
+      cursor: pointer;
+      transform: scale(1.05);
     }
-    .classify_name {
-      margin-top: 10px;
-    }
+  }
+  .classify_name {
+    margin-top: 10px;
   }
 }
 </style>

@@ -93,4 +93,9 @@ utools.onPluginEnter((action) => {
     width: 100%;
   }
 }
+
+// 隐藏所有的滚动条
+::-webkit-scrollbar {
+  display: none;
+}
 </style>
