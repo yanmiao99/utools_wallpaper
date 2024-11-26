@@ -38,6 +38,8 @@ const tagTypeList = ref([
   { name: '24H热门', type_id: 2 },
   { name: '本周排行', type_id: 3 },
   { name: '当月排行', type_id: 4 },
+  { name: '热门下载', type_id: 5 },
+  { name: '热门使用', type_id: 6 },
 ]);
 
 onMounted(() => {
