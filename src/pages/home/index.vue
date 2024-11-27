@@ -4,13 +4,12 @@ import { selectWallpaperListByType, globalSearch } from '@/api/wallpaper';
 import { useSubInput } from '@/hooks/SubInput';
 import { IMAGE_URL_PREFIX, APPID } from '@/global/constant.js';
 import { throttle } from '@/utils/utils/index.js';
+import PreviewModal from '@/components/previewModal/index.vue';
 const { subInput, setSubInput, onChanged, onSearch, onClear } = useSubInput(
   '',
   '搜一搜，回车键确认',
   true
 );
-
-import PreviewModal from '@/components/previewModal/index.vue';
 
 onChanged((val) => {});
 

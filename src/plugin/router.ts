@@ -25,6 +25,11 @@ const router = createRouter({
       component: () => import('@/pages/classify/index.vue'),
     },
     {
+      name: '历史记录',
+      path: '/history',
+      component: () => import('@/pages/history/index.vue'),
+    },
+    {
       name: '分类详情',
       path: '/classifyDetails',
       component: () => import('@/pages/classifyDetails/index.vue'),

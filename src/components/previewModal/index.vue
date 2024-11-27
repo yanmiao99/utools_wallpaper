@@ -86,6 +86,7 @@ import { Notification, Modal } from '@arco-design/web-vue';
 import { useLoading } from '@/hooks/useLoading.js';
 const { isLoading, loadingText, showLoading, hideLoading } = useLoading();
 import { IMAGE_URL_PREFIX, APPID } from '@/global/constant.js';
+import { saveHistory } from '@/utils/utils/historyStore.js';
 
 const props = defineProps([]);
 const emits = defineEmits([]);
@@ -141,6 +142,9 @@ const handleDownloadImage = (item) => {
       </div>
     ),
     onOk() {
+      // 存储下载历史 downloadHistory
+      saveHistory('downloadHistory', item);
+
       showLoading('壁纸下载中...');
       Notification.info({
         id: 'downloadImage',
@@ -232,6 +236,9 @@ const handleSetWallpaper = (item) => {
       </div>
     ),
     onOk() {
+      // 存储设置壁纸历史 setWallpaperHistory
+      saveHistory('setWallpaperHistory', item);
+
       showLoading('壁纸设置中...');
       Notification.info({
         id: 'setWallpaper',
@@ -305,7 +312,7 @@ const closeModal = () => {
   if (isLoading.value) {
     Modal.confirm({
       title: '提示',
-      content: '图片正在下载中, 确认关闭吗？',
+      content: '图片正在处理中, 确认关闭吗？',
       onOk() {
         preViewVisible.value = false;
       },

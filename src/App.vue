@@ -21,6 +21,13 @@
           分类
         </a-menu-item>
 
+        <a-menu-item key="/history">
+          <template #icon>
+            <iconHistory />
+          </template>
+          历史记录
+        </a-menu-item>
+
         <a-menu-item key="/setting">
           <template #icon>
             <IconSettings />
