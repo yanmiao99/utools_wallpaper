@@ -110,9 +110,7 @@ const handlePageChange = throttle(() => {
       style="width: 100%"
       :loading="imageLoading && imageListCurrent === 1"
       tip="数据加载中...">
-      <a-card
-        style="min-height: 100vh"
-        :loading="imageLoading">
+      <a-card style="min-height: 100vh">
         <template #title>
           <div class="home_search_tips">
             <a-tooltip content="点击返回标签">
@@ -141,7 +139,7 @@ const handlePageChange = throttle(() => {
         <template v-if="imageList.length">
           <a-list
             :max-height="440"
-            scrollbar
+            :scrollbar="true"
             :bordered="false"
             @reach-bottom="handlePageChange">
             <template #scroll-loading>
@@ -222,6 +220,7 @@ const handlePageChange = throttle(() => {
     }
   }
   .home_content {
+    position: relative;
     display: flex;
     flex-wrap: wrap;
     width: 100%;
