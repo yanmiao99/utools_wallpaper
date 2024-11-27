@@ -67,6 +67,13 @@
           <icon-send />
           设为壁纸
         </a-image-preview-action>
+
+        <a-image-preview-action
+          name="打赏作者"
+          @click="handleRewardAuthor()">
+          <icon-robot />
+          打赏作者
+        </a-image-preview-action>
       </div>
     </template>
   </a-modal>
@@ -90,17 +97,28 @@ onMounted(() => {});
 
 // 预览图片
 const getPreviewImage = async ({ id }) => {
-  const res = await selectWallpaperById({
-    page: 1,
-    pagesize: 5,
-    wallpaper_id: id,
-    openid: 'oGkO_5d8kqjhyH-BS_FMR2vMGdJU',
-    appid: APPID,
-    isshowad: 0,
-    label_id: '',
-  });
-  preViewDetails.value = res.info;
-  preViewVisible.value = true;
+  try {
+    const res = await selectWallpaperById({
+      page: 1,
+      pagesize: 5,
+      wallpaper_id: id,
+      openid: 'oGkO_5d8kqjhyH-BS_FMR2vMGdJU',
+      appid: APPID,
+      isshowad: 0,
+      label_id: '',
+    });
+    preViewDetails.value = res.info;
+    preViewVisible.value = true;
+
+    if (JSON.stringify(res.info) === '{}') {
+      throw new Error('暂未开放预览功能');
+    }
+  } catch (error) {
+    Notification.error({
+      content: '小主,不要意思,出错了',
+      title: '提示',
+    });
+  }
 };
 
 // 下载图片
@@ -111,9 +129,17 @@ const handleDownloadImage = (item) => {
 
   Modal.confirm({
     title: '提示',
-    content: `原图较大,共(${(item.newimagefilesize / 1024 / 1024).toFixed(
-      2
-    )})MB, 确认下载该图片吗？`,
+    content: (
+      <div style={{ textAlign: 'center' }}>
+        <p>
+          图片大小:
+          <span style={{ color: '#165DFF' }}>
+            {(item.newimagefilesize / 1024 / 1024).toFixed(2)}MB
+          </span>
+        </p>
+        <p>原图较大,确认下载该图片吗？</p>
+      </div>
+    ),
     onOk() {
       showLoading('壁纸下载中...');
       Notification.info({
@@ -199,8 +225,12 @@ const handleSetWallpaper = (item) => {
 
   Modal.confirm({
     title: '提示',
-    content:
-      '确认将该图片设置为壁纸吗？(提示 : 如果设置不成功, 请手动下载原图自行设置)',
+    content: (
+      <div style={{ textAlign: 'center' }}>
+        <p>确认将该图片设置为壁纸吗？</p>
+        <p>(提示 : 如果设置不成功, 请手动下载原图自行设置)</p>
+      </div>
+    ),
     onOk() {
       showLoading('壁纸设置中...');
       Notification.info({
@@ -229,6 +259,30 @@ const handleSetWallpaper = (item) => {
           hideLoading();
         });
     },
+  });
+};
+
+// 打赏作者
+const handleRewardAuthor = () => {
+  Modal.open({
+    okText: '关闭',
+    hideCancel: true,
+    title: '打赏作者',
+    content: (
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+        <img
+          class="reward_author_img"
+          src="https://qny.weizulin.cn/images/202411271540075.png"
+          alt="打赏作者"
+          style={{ height: '350px', objectFit: 'contain' }}
+        />
+      </div>
+    ),
   });
 };
 

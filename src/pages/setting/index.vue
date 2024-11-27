@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="jsx">
 import { ref, onMounted } from 'vue';
 import { Notification } from '@arco-design/web-vue';
 
@@ -84,7 +84,7 @@ const clearWallpaperCache = () => {
       <div style="font-weight: bold">清空壁纸缓存 :</div>
 
       <a-popconfirm
-        content="清空缓存后，将会删除所有已缓存的壁纸，并且有可能导致当前的壁纸失效，是否继续?"
+        content="确认清空壁纸缓存吗？"
         ok-text="继续"
         cancel-text="取消"
         @ok="clearWallpaperCache">
