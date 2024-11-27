@@ -185,7 +185,7 @@ const handlePageChange = throttle(() => {
         <template v-if="imageList.length">
           <a-list
             :max-height="440"
-            scrollbar
+            :scrollbar="true"
             :bordered="false"
             @reach-bottom="handlePageChange">
             <template #scroll-loading>
@@ -217,6 +217,16 @@ const handlePageChange = throttle(() => {
               </div>
             </div>
           </a-list>
+
+          <a-back-top
+            target-container=".arco-scrollbar-container"
+            :style="{ position: 'absolute' }">
+            <a-tooltip content="返回顶部">
+              <a-button>
+                <icon-to-top />
+              </a-button>
+            </a-tooltip>
+          </a-back-top>
         </template>
 
         <div
@@ -252,6 +262,7 @@ const handlePageChange = throttle(() => {
     }
   }
   .home_content {
+    position: relative;
     display: flex;
     flex-wrap: wrap;
     width: 100%;
@@ -261,7 +272,8 @@ const handlePageChange = throttle(() => {
       transition: transform 0.3s;
       margin-bottom: 10px;
       margin-right: 10px;
-      &:nth-child(2n) {
+      // 每一排最后一个元素
+      &:nth-last-child(1) {
         margin-right: 0;
       }
       &:hover {
