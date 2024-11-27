@@ -149,82 +149,87 @@ const handlePageChange = throttle(() => {
 
 <template>
   <div class="home_wrapper">
-    <a-card
-      :bordered="false"
-      style="min-height: 100vh">
-      <template #title>
-        <div
-          class="home_search_tips"
-          v-if="userSearchKeyword.length">
-          <a-tooltip content="点击返回标签">
-            <icon-left-circle
-              class="home_search_back"
-              @click="handleSearchBack" />
-          </a-tooltip>
-          <span>当前正在搜索 :</span>
-          <span class="home_search_text">{{ userSearchKeyword }}</span>
-        </div>
-        <a-radio-group
-          v-else
-          v-model="currentTag"
-          @change="handleChangeType"
-          type="button">
-          <a-radio
-            v-for="item in tagTypeList"
-            :value="item.type_id"
-            :key="item.type_id">
-            {{ item.name }}
-          </a-radio>
-        </a-radio-group>
-      </template>
-
-      <template v-if="imageList.length">
-        <a-list
-          :max-height="440"
-          scrollbar
-          :bordered="false"
-          @reach-bottom="handlePageChange">
-          <template #scroll-loading>
-            <div v-if="isBottom">
-              <a-space size="middle">
-                <icon-thunderbolt />
-                <span>小主,已经没有更多的数据了 ~ </span>
-              </a-space>
-            </div>
-            <a-spin
-              v-else
-              dot />
-          </template>
-          <div class="home_content">
-            <div
-              class="home_content_item"
-              @click="handlePreviewImage(item)"
-              v-for="item in imageList"
-              :key="item.id">
-              <a-image
-                :preview="false"
-                width="340"
-                height="200"
-                fit="cover"
-                class="home_content_item_image"
-                show-loader
-                :src="`${IMAGE_URL_PREFIX}${item.coverimage}`">
-              </a-image>
-            </div>
+    <a-spin
+      style="width: 100%"
+      :loading="imageLoading && imageListCurrent === 1"
+      tip="数据加载中...">
+      <a-card
+        :bordered="false"
+        style="min-height: 100vh">
+        <template #title>
+          <div
+            class="home_search_tips"
+            v-if="userSearchKeyword.length">
+            <a-tooltip content="点击返回标签">
+              <icon-left-circle
+                class="home_search_back"
+                @click="handleSearchBack" />
+            </a-tooltip>
+            <span>当前正在搜索 :</span>
+            <span class="home_search_text">{{ userSearchKeyword }}</span>
           </div>
-        </a-list>
-      </template>
+          <a-radio-group
+            v-else
+            v-model="currentTag"
+            @change="handleChangeType"
+            type="button">
+            <a-radio
+              v-for="item in tagTypeList"
+              :value="item.type_id"
+              :key="item.type_id">
+              {{ item.name }}
+            </a-radio>
+          </a-radio-group>
+        </template>
 
-      <div
-        class="home_empty"
-        v-else>
-        <a-empty description="小主,好像没有找到数据诶~" />
-      </div>
+        <template v-if="imageList.length">
+          <a-list
+            :max-height="440"
+            scrollbar
+            :bordered="false"
+            @reach-bottom="handlePageChange">
+            <template #scroll-loading>
+              <div v-if="isBottom">
+                <a-space size="middle">
+                  <icon-thunderbolt />
+                  <span>小主,已经没有更多的数据了 ~ </span>
+                </a-space>
+              </div>
+              <a-spin
+                v-else
+                dot />
+            </template>
+            <div class="home_content">
+              <div
+                class="home_content_item"
+                @click="handlePreviewImage(item)"
+                v-for="item in imageList"
+                :key="item.id">
+                <a-image
+                  :preview="false"
+                  width="340"
+                  height="200"
+                  fit="cover"
+                  class="home_content_item_image"
+                  show-loader
+                  :src="`${IMAGE_URL_PREFIX}${item.coverimage}`">
+                </a-image>
+              </div>
+            </div>
+          </a-list>
+        </template>
 
-      <div class="home_footer">
-        免责声明：本站所有图片均来自网络收集，如有侵权请联系删除
-      </div>
-    </a-card>
+        <div
+          class="home_empty"
+          v-else-if="!imageLoading && imageList.length === 0">
+          <a-empty description="小主,好像没有找到数据诶~" />
+        </div>
+
+        <div class="home_footer">
+          免责声明：本站所有图片均来自网络收集，如有侵权请联系删除
+        </div>
+      </a-card>
+    </a-spin>
 
     <PreviewModal ref="previewModalRef" />
   </div>
