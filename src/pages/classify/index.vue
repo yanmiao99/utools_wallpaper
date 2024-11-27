@@ -45,6 +45,7 @@ onMounted(() => {
       <img
         class="classify_img"
         :src="item.image"
+        loading="lazy"
         :alt="item.name" />
       <div class="classify_name">{{ item.name }}</div>
     </div>

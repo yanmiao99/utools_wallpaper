@@ -78,6 +78,17 @@ utools.onPluginEnter((action) => {
 });
 </script>
 
+<style>
+.arco-modal-body {
+  padding: 10px !important;
+  box-sizing: border-box !important;
+}
+.arco-modal-footer {
+  padding: 10px !important;
+  box-sizing: border-box !important;
+}
+</style>
+
 <style scoped lang="less">
 .main {
   position: fixed;
