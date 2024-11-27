@@ -1,5 +1,5 @@
 <script setup lang="jsx">
-import { ref, onMounted, watch, onUnmounted } from 'vue';
+import { ref, onMounted, watch, onUnmounted, nextTick } from 'vue';
 import {
   selectWallpaperListByType,
   globalSearch,
@@ -9,8 +9,8 @@ import { Notification, Modal } from '@arco-design/web-vue';
 import { useSubInput } from '@/hooks/SubInput';
 import { IMAGE_URL_PREFIX, APPID } from '@/global/constant.js';
 import { useLoading } from '@/hooks/useLoading.js';
+import { throttle } from '@/utils/utils/index.js';
 const { isLoading, loadingText, showLoading, hideLoading } = useLoading();
-
 const { subInput, setSubInput, onChanged, onSearch, onClear } = useSubInput(
   '',
   '搜一搜，回车键确认',
@@ -29,6 +29,7 @@ const userSearchKeyword = ref(''); // 用户输入的搜索关键词
 onSearch((val) => {
   userSearchKeyword.value = val;
   imageListCurrent.value = 1;
+  imageList.value = [];
   handleSearchKeywordData();
   preViewVisible.value = false;
 });
@@ -44,20 +45,16 @@ const tagTypeList = ref([
 
 onMounted(() => {
   getImageData();
-  document.addEventListener('keydown', handleKeyDown);
 });
 
-onUnmounted(() => {
-  document.removeEventListener('keydown', handleKeyDown);
-});
+onUnmounted(() => {});
 
 const currentTag = ref(tagTypeList.value[0].type_id); // 当前标签
-
 const imageList = ref([]); // 图片列表
-const imageListTotal = ref(0); // 图片总数
 
-const imageListCurrent = ref(1); // 当前页
-const imageListPageSize = ref(4); // 每页显示数量
+const imageListTotal = ref(0); // 页总数
+const imageListCurrent = ref(0); // 当前页
+const imageListPageSize = ref(20); // 每页显示数量
 
 const imageLoading = ref(false); // 加载状态
 
@@ -65,6 +62,8 @@ const timestamp = ref(''); // 时间戳
 
 const preViewVisible = ref(false); // 预览图片弹窗
 const preViewDetails = ref({}); // 预览图片详情
+
+const isBottom = ref(false); // 是否到达底部
 
 // 预览图片
 const handlePreviewImage = async (item) => {
@@ -83,6 +82,9 @@ const handlePreviewImage = async (item) => {
 
 // 获取图片数据
 const getImageData = async () => {
+  if (imageLoading.value) return;
+  if (isBottom.value) return;
+
   timestamp.value = Date.now();
   imageLoading.value = true;
   try {
@@ -94,8 +96,11 @@ const getImageData = async () => {
       zone_id: 1,
     };
     const res = await selectWallpaperListByType(param);
-    imageList.value = res.list;
+    imageList.value.push(...res.list);
     imageListTotal.value = res.total;
+
+    // 判断是否到达底部
+    isBottom.value = imageListTotal.value === imageList.value.length;
   } finally {
     imageLoading.value = false;
   }
@@ -103,6 +108,9 @@ const getImageData = async () => {
 
 // 搜索关键词
 const handleSearchKeywordData = async () => {
+  if (imageLoading.value) return;
+  if (isBottom.value) return;
+
   timestamp.value = Date.now();
   imageLoading.value = true;
   try {
@@ -123,8 +131,11 @@ const handleSearchKeywordData = async () => {
         coverimageDetail: item.wallpaper.coverimageDetail,
       });
     });
-    imageList.value = tempList;
+    imageList.value.push(...tempList);
     imageListTotal.value = res.total;
+
+    // 判断是否到达底部
+    isBottom.value = imageListTotal.value === imageList.value.length;
   } finally {
     imageLoading.value = false;
   }
@@ -135,6 +146,7 @@ const handleSearchBack = () => {
   userSearchKeyword.value = '';
   setSubInput('');
   imageListCurrent.value = 1;
+  imageList.value = [];
   getImageData();
 };
 
@@ -143,19 +155,19 @@ const handleChangeType = (value) => {
   setSubInput('');
   imageListCurrent.value = 1;
   currentTag.value = value;
+  imageList.value = [];
   getImageData();
 };
 
-// 分页
-const handlePageChange = (value) => {
-  imageListCurrent.value = value;
-
+// 滚动加载分页
+const handlePageChange = throttle(() => {
+  imageListCurrent.value += 1;
   if (userSearchKeyword.value) {
     handleSearchKeywordData();
   } else {
     getImageData();
   }
-};
+}, 500);
 
 // 下载图片
 const handleDownloadImage = (item) => {
@@ -285,83 +297,61 @@ const handleSetWallpaper = (item) => {
     },
   });
 };
-
-// 云盘超高清图
-// const handleCloudDown = (item) => {
-//   // 提取 link 中 surl= 后面的字符
-//   const cloudLink = item.baiduwangpan1.match(/surl=([^&]*)/)[1];
-//   const resLink = `https://pan.baidu.com/s/${cloudLink}`;
-//   utools.shellOpenExternal(resLink);
-// }
-
-// 监听 preViewVisible , 然后执行 hideLoading
-watch(preViewVisible, (val) => {
-  if (!val) {
-    hideLoading();
-  }
-});
-
-// 按下左右按键翻页
-const handleKeyDown = (e) => {
-  if (e.keyCode === 37) {
-    if (imageListCurrent.value > 1) {
-      imageListCurrent.value -= 1;
-      handlePageChange(imageListCurrent.value);
-    }
-  } else if (e.keyCode === 39) {
-    if (
-      imageListCurrent.value <
-      Math.ceil(imageListTotal.value / imageListPageSize.value)
-    ) {
-      imageListCurrent.value += 1;
-      handlePageChange(imageListCurrent.value);
-    }
-  }
-};
 </script>
 
 <template>
   <div class="home_wrapper">
-    <a-spin
-      class="home_spin"
-      :loading="imageLoading"
-      tip="数据加载中...">
-      <a-card class="home_card">
-        <template #title>
-          <div
-            class="home_search_tips"
-            v-if="userSearchKeyword.length">
-            <a-tooltip content="点击返回标签">
-              <icon-left-circle
-                class="home_search_back"
-                @click="handleSearchBack" />
-            </a-tooltip>
-            <span>当前正在搜索 :</span>
-            <span class="home_search_text">{{ userSearchKeyword }}</span>
-          </div>
+    <a-card style="min-height: 100vh">
+      <template #title>
+        <div
+          class="home_search_tips"
+          v-if="userSearchKeyword.length">
+          <a-tooltip content="点击返回标签">
+            <icon-left-circle
+              class="home_search_back"
+              @click="handleSearchBack" />
+          </a-tooltip>
+          <span>当前正在搜索 :</span>
+          <span class="home_search_text">{{ userSearchKeyword }}</span>
+        </div>
 
-          <div
-            class="home_tabList"
-            v-else>
-            <a-radio-group
-              v-model="currentTag"
-              @change="handleChangeType"
-              type="button">
-              <a-radio
-                v-for="item in tagTypeList"
-                :value="item.type_id"
-                :key="item.type_id">
-                {{ item.name }}
-              </a-radio>
-            </a-radio-group>
-          </div>
-        </template>
-        <template v-if="imageList.length">
+        <div
+          class="home_tabList"
+          v-else>
+          <a-radio-group
+            v-model="currentTag"
+            @change="handleChangeType"
+            type="button">
+            <a-radio
+              v-for="item in tagTypeList"
+              :value="item.type_id"
+              :key="item.type_id">
+              {{ item.name }}
+            </a-radio>
+          </a-radio-group>
+        </div>
+      </template>
+      <template v-if="imageList.length">
+        <a-list
+          :max-height="440"
+          scrollbar
+          @reach-bottom="handlePageChange">
+          <template #scroll-loading>
+            <div v-if="isBottom">
+              <a-space size="middle">
+                <icon-thunderbolt />
+                <span>小主,已经没有更多的数据了 ~ </span>
+              </a-space>
+            </div>
+            <a-spin
+              v-else
+              dot />
+          </template>
           <div class="home_content">
             <div
               class="home_content_item"
-              v-for="item in imageList"
               @click="handlePreviewImage(item)"
+              v-for="item in imageList"
               :key="item.id">
               <a-image
                 :preview="false"
@@ -371,39 +361,22 @@ const handleKeyDown = (e) => {
                 class="home_content_item_image"
                 show-loader
                 :src="`${IMAGE_URL_PREFIX}${item.coverimage}?timestamp=${timestamp}`">
-                <template #loader>
-                  <img
-                    width="340"
-                    height="200"
-                    loading="lazy"
-                    :src="`${IMAGE_URL_PREFIX}${item.coverimage}`"
-                    :style="{
-                      filter: 'blur(5px)',
-                      objectFit: 'cover',
-                    }" />
-                </template>
               </a-image>
             </div>
           </div>
+        </a-list>
+      </template>
 
-          <a-tooltip content="按下键盘左右键可翻页(← 上一页, → 下一页)">
-            <div class="home_footer">
-              <a-pagination
-                @change="handlePageChange"
-                :total="imageListTotal"
-                v-model:current="imageListCurrent"
-                v-model:page-size="imageListPageSize"
-                show-jumper />
-            </div>
-          </a-tooltip>
-        </template>
+      <div
+        class="home_empty"
+        v-else>
+        <a-empty description="小主,好像没有找到数据诶~" />
+      </div>
 
-        <a-empty
-          description="暂无数据"
-          v-else />
-      </a-card>
-    </a-spin>
-
+      <div class="home_footer">
+        免责声明：本站所有图片均来自网络收集，如有侵权请联系删除
+      </div>
+    </a-card>
     <a-modal
       :esc-to-close="false"
       v-model:visible="preViewVisible">
@@ -488,52 +461,61 @@ const handleKeyDown = (e) => {
 
 <style scoped lang="less">
 .home_wrapper {
-  overflow: hidden;
-  .home_spin {
+  .home_tabList {
     width: 100%;
-    height: 100vh;
-    .home_card {
-      height: 100vh;
-      .home_tabList {
-        width: 100%;
+  }
+  .home_search_tips {
+    display: flex;
+    align-items: center;
+    .home_search_back {
+      cursor: pointer;
+      margin-right: 6px;
+      font-size: 22px;
+    }
+    .home_search_text {
+      font-weight: bold;
+      margin-left: 6px;
+      color: #1890ff;
+    }
+  }
+
+  .home_content {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    padding: 13px;
+    box-sizing: border-box;
+
+    .home_content_item {
+      position: relative;
+      transition: transform 0.3s;
+      margin-bottom: 10px;
+      margin-right: 10px;
+      &:nth-child(2n) {
+        margin-right: 0;
       }
-      .home_search_tips {
-        display: flex;
-        align-items: center;
-        .home_search_back {
-          cursor: pointer;
-          margin-right: 6px;
-          font-size: 22px;
-        }
-        .home_search_text {
-          font-weight: bold;
-          margin-left: 6px;
-          color: #1890ff;
-        }
+      &:hover {
+        transform: scale(1.01);
       }
-      .home_content {
-        display: flex;
-        flex-wrap: wrap;
-        width: 100%;
-        .home_content_item {
-          position: relative;
-          margin: 5px;
-          transition: transform 0.3s;
-          &:hover {
-            transform: scale(1.01);
-          }
-          .home_content_item_image {
-            cursor: pointer;
-            border-radius: 4px;
-          }
-        }
-      }
-      .home_footer {
-        display: flex;
-        justify-content: center;
-        margin-top: 6px;
+      .home_content_item_image {
+        cursor: pointer;
+        border-radius: 4px;
       }
     }
+  }
+  .home_empty {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .home_footer {
+    text-align: center;
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
   }
 }
 
