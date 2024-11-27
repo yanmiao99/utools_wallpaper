@@ -136,6 +136,7 @@ const handlePageChange = throttle(() => {
         <a-list
           :max-height="440"
           scrollbar
+          :bordered="false"
           @reach-bottom="handlePageChange">
           <template #scroll-loading>
             <div v-if="isBottom">
@@ -207,8 +208,6 @@ const handlePageChange = throttle(() => {
     display: flex;
     flex-wrap: wrap;
     width: 100%;
-    padding: 13px;
-    box-sizing: border-box;
 
     .home_content_item {
       position: relative;

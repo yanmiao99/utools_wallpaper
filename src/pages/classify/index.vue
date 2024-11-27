@@ -36,7 +36,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <a-card style="min-height: 100vh">
+  <a-card
+    :bordered="false"
+    style="min-height: 100vh">
     <div
       class="classify_item"
       v-for="item in classifyList"

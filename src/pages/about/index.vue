@@ -21,8 +21,8 @@ const fnList = ref([
 </script>
 
 <template>
-  <a-card>
-    <a-list>
+  <a-card :bordered="false">
+    <a-list :bordered="false">
       <template #header> 功能列表 </template>
       <a-list-item
         v-for="item in fnList"

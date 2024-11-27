@@ -49,7 +49,7 @@ const currentTag = ref(tagTypeList.value[0].type_id); // 当前标签
 const imageList = ref([]); // 图片列表
 
 const imageListTotal = ref(0); // 页总数
-const imageListCurrent = ref(0); // 当前页
+const imageListCurrent = ref(1); // 当前页
 const imageListPageSize = ref(20); // 每页显示数量
 
 const imageLoading = ref(false); // 加载状态
@@ -149,7 +149,9 @@ const handlePageChange = throttle(() => {
 
 <template>
   <div class="home_wrapper">
-    <a-card style="min-height: 100vh">
+    <a-card
+      :bordered="false"
+      style="min-height: 100vh">
       <template #title>
         <div
           class="home_search_tips"
@@ -180,6 +182,7 @@ const handlePageChange = throttle(() => {
         <a-list
           :max-height="440"
           scrollbar
+          :bordered="false"
           @reach-bottom="handlePageChange">
           <template #scroll-loading>
             <div v-if="isBottom">
@@ -247,8 +250,6 @@ const handlePageChange = throttle(() => {
     display: flex;
     flex-wrap: wrap;
     width: 100%;
-    padding: 13px;
-    box-sizing: border-box;
 
     .home_content_item {
       position: relative;

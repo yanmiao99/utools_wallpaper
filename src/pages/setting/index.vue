@@ -57,7 +57,9 @@ const clearWallpaperCache = () => {
 </script>
 
 <template>
-  <a-card style="min-height: 100vh">
+  <a-card
+    :bordered="false"
+    style="min-height: 100vh">
     <a-space
       direction="vertical"
       style="width: 100%">

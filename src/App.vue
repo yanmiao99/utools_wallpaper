@@ -21,18 +21,18 @@
           分类
         </a-menu-item>
 
-        <a-menu-item key="/about">
-          <template #icon>
-            <IconRobot />
-          </template>
-          关于
-        </a-menu-item>
-
         <a-menu-item key="/setting">
           <template #icon>
             <IconSettings />
           </template>
           设置
+        </a-menu-item>
+
+        <a-menu-item key="/about">
+          <template #icon>
+            <IconRobot />
+          </template>
+          关于
         </a-menu-item>
       </a-menu>
     </a-layout-sider>
