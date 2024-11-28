@@ -29,6 +29,16 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  // 是否显示底部免责声明
+  showFooter: {
+    type: Boolean,
+    default: true,
+  },
+  // 自定义底部文案
+  footerText: {
+    type: String,
+    default: '免责声明：本站所有图片均来自网络收集，如有侵权请联系删除',
+  },
 });
 
 const emit = defineEmits(['delete', 'reach-bottom']);
@@ -52,7 +62,7 @@ const handleReachBottom = () => {
 </script>
 
 <template>
-  <div class="wallpaper-card">
+  <div class="wallpaper_card">
     <a-spin
       style="width: 100%"
       :loading="firstLoading"
@@ -71,13 +81,13 @@ const handleReachBottom = () => {
               </a-space>
             </div>
             <a-spin
-              v-else-if="loading"
+              v-else
               dot />
           </template>
 
-          <div class="wallpaper-content">
+          <div class="wallpaper_content">
             <div
-              class="wallpaper-item"
+              class="wallpaper_content_item"
               v-for="item in imageList"
               :key="item.id">
               <a-image
@@ -86,7 +96,7 @@ const handleReachBottom = () => {
                 height="200"
                 fit="cover"
                 @click="handlePreviewImage(item)"
-                class="wallpaper-image"
+                class="wallpaper_content_item_image"
                 show-loader
                 :src="`${IMAGE_URL_PREFIX}${item.coverimage}`">
               </a-image>
@@ -97,7 +107,7 @@ const handleReachBottom = () => {
                 ok-text="继续"
                 cancel-text="取消"
                 @ok="handleDeleteImage(item)">
-                <div class="wallpaper-delete">
+                <div class="wallpaper_content_item_delete">
                   <icon-delete />
                   <div>删除</div>
                 </div>
@@ -107,10 +117,11 @@ const handleReachBottom = () => {
         </a-list>
 
         <a-back-top
+
           target-container=".arco-scrollbar-container"
           :style="{ position: 'absolute' }">
           <a-tooltip content="返回顶部">
-            <a-button>
+            <a-button shape="circle">
               <icon-to-top />
             </a-button>
           </a-tooltip>
@@ -118,13 +129,16 @@ const handleReachBottom = () => {
       </template>
 
       <div
-        class="wallpaper-empty"
+        class="wallpaper_empty"
         v-else-if="!loading && imageList.length === 0">
         <a-empty description="小主,好像没有找到数据诶~" />
       </div>
 
-
-
+      <div
+        v-if="showFooter"
+        class="wallpaper_footer">
+        {{ footerText }}
+      </div>
     </a-spin>
 
     <PreviewModal ref="previewModalRef" />
@@ -132,14 +146,14 @@ const handleReachBottom = () => {
 </template>
 
 <style scoped lang="less">
-.wallpaper-card {
-  .wallpaper-content {
+.wallpaper_card {
+  .wallpaper_content {
     position: relative;
     display: flex;
     flex-wrap: wrap;
     width: 100%;
 
-    .wallpaper-item {
+    .wallpaper_content_item {
       position: relative;
       transition: transform 0.3s;
       margin-bottom: 10px;
@@ -150,13 +164,13 @@ const handleReachBottom = () => {
       &:hover {
         transform: scale(1.01);
       }
-      .wallpaper-image {
+      .wallpaper_content_item_image {
         cursor: pointer;
         border-radius: 4px;
       }
     }
 
-    .wallpaper-delete {
+    .wallpaper_content_item_delete {
       display: flex;
       justify-content: center;
       align-items: center;
@@ -173,11 +187,20 @@ const handleReachBottom = () => {
     }
   }
 
-  .wallpaper-empty {
+  .wallpaper_empty {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+  }
+
+  .wallpaper_footer {
+    text-align: center;
+    position: fixed;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
   }
 }
 </style>

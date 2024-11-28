@@ -139,10 +139,6 @@ const handlePageChange = throttle(() => {
         :is-bottom="isBottom"
         :first-loading="imageLoading && imageListCurrent === 1"
         @reach-bottom="handlePageChange" />
-
-      <div class="home_footer">
-        免责声明：本站所有图片均来自网络收集，如有侵权请联系删除
-      </div>
     </a-card>
   </div>
 </template>
@@ -166,15 +162,6 @@ const handlePageChange = throttle(() => {
         margin-right: 6px;
       }
     }
-  }
-
-  .home_footer {
-    text-align: center;
-    position: absolute;
-    bottom: 15px;
-    left: 50%;
-    transform: translateX(-50%);
-    white-space: nowrap;
   }
 }
 </style>
