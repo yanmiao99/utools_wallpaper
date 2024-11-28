@@ -5,6 +5,7 @@ import { useSubInput } from '@/hooks/SubInput';
 import { IMAGE_URL_PREFIX, APPID } from '@/global/constant.js';
 import { throttle } from '@/utils/utils/index.js';
 import PreviewModal from '@/components/previewModal/index.vue';
+import WallpaperCard from '@/components/wallpaperCard/index.vue';
 const { subInput, setSubInput, onChanged, onSearch, onClear } = useSubInput(
   '',
   '搜一搜，回车键确认',
@@ -148,99 +149,46 @@ const handlePageChange = throttle(() => {
 
 <template>
   <div class="home_wrapper">
-    <a-spin
-      style="width: 100%"
-      :loading="imageLoading && imageListCurrent === 1"
-      tip="数据加载中...">
-      <a-card
-        :bordered="false"
-        style="min-height: 100vh">
-        <template #title>
-          <div
-            class="home_search_tips"
-            v-if="userSearchKeyword.length">
-            <a-tooltip content="点击返回标签">
-              <icon-left-circle
-                class="home_search_back"
-                @click="handleSearchBack" />
-            </a-tooltip>
-            <span>当前正在搜索 :</span>
-            <span class="home_search_text">{{ userSearchKeyword }}</span>
-          </div>
-          <a-radio-group
-            v-else
-            v-model="currentTag"
-            @change="handleChangeType"
-            type="button">
-            <a-radio
-              v-for="item in tagTypeList"
-              :value="item.type_id"
-              :key="item.type_id">
-              {{ item.name }}
-            </a-radio>
-          </a-radio-group>
-        </template>
-
-        <template v-if="imageList.length">
-          <a-list
-            :max-height="440"
-            :scrollbar="true"
-            :bordered="false"
-            @reach-bottom="handlePageChange">
-            <template #scroll-loading>
-              <div v-if="isBottom">
-                <a-space size="middle">
-                  <icon-thunderbolt />
-                  <span>小主,已经没有更多的数据了 ~ </span>
-                </a-space>
-              </div>
-              <a-spin
-                v-else
-                dot />
-            </template>
-            <div class="home_content">
-              <div
-                class="home_content_item"
-                @click="handlePreviewImage(item)"
-                v-for="item in imageList"
-                :key="item.id">
-                <a-image
-                  :preview="false"
-                  width="340"
-                  height="200"
-                  fit="cover"
-                  class="home_content_item_image"
-                  show-loader
-                  :src="`${IMAGE_URL_PREFIX}${item.coverimage}`">
-                </a-image>
-              </div>
-            </div>
-          </a-list>
-
-          <a-back-top
-            target-container=".arco-scrollbar-container"
-            :style="{ position: 'absolute' }">
-            <a-tooltip content="返回顶部">
-              <a-button>
-                <icon-to-top />
-              </a-button>
-            </a-tooltip>
-          </a-back-top>
-        </template>
-
+    <a-card
+      :bordered="false"
+      style="min-height: 100vh">
+      <template #title>
         <div
-          class="home_empty"
-          v-else-if="!imageLoading && imageList.length === 0">
-          <a-empty description="小主,好像没有找到数据诶~" />
+          class="home_search_tips"
+          v-if="userSearchKeyword.length">
+          <a-tooltip content="点击返回标签">
+            <icon-left-circle
+              class="home_search_back"
+              @click="handleSearchBack" />
+          </a-tooltip>
+          <span>当前正在搜索 :</span>
+          <span class="home_search_text">{{ userSearchKeyword }}</span>
         </div>
+        <a-radio-group
+          v-else
+          v-model="currentTag"
+          @change="handleChangeType"
+          type="button">
+          <a-radio
+            v-for="item in tagTypeList"
+            :value="item.type_id"
+            :key="item.type_id">
+            {{ item.name }}
+          </a-radio>
+        </a-radio-group>
+      </template>
 
-        <div class="home_footer">
-          免责声明：本站所有图片均来自网络收集，如有侵权请联系删除
-        </div>
-      </a-card>
-    </a-spin>
+      <WallpaperCard
+        :image-list="imageList"
+        :loading="imageLoading"
+        :is-bottom="isBottom"
+        :first-loading="imageLoading && imageListCurrent === 1"
+        @reach-bottom="handlePageChange" />
 
-    <PreviewModal ref="previewModalRef" />
+      <div class="home_footer">
+        免责声明：本站所有图片均来自网络收集，如有侵权请联系删除
+      </div>
+    </a-card>
   </div>
 </template>
 
@@ -260,36 +208,7 @@ const handlePageChange = throttle(() => {
       color: #1890ff;
     }
   }
-  .home_content {
-    position: relative;
-    display: flex;
-    flex-wrap: wrap;
-    width: 100%;
 
-    .home_content_item {
-      position: relative;
-      transition: transform 0.3s;
-      margin-bottom: 10px;
-      margin-right: 10px;
-      // 每一排最后一个元素
-      &:nth-last-child(1) {
-        margin-right: 0;
-      }
-      &:hover {
-        transform: scale(1.01);
-      }
-      .home_content_item_image {
-        cursor: pointer;
-        border-radius: 4px;
-      }
-    }
-  }
-  .home_empty {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
   .home_footer {
     text-align: center;
     position: absolute;

@@ -8,6 +8,7 @@ import { IMAGE_URL_PREFIX, APPID } from '@/global/constant.js';
 import { useRoute, useRouter } from 'vue-router';
 import PreviewModal from '@/components/previewModal/index.vue';
 import { throttle } from '@/utils/utils/index.js';
+import WallpaperCard from '@/components/wallpaperCard/index.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -106,96 +107,43 @@ const handlePageChange = throttle(() => {
 
 <template>
   <div class="home_wrapper">
-    <a-spin
-      style="width: 100%"
-      :loading="imageLoading && imageListCurrent === 1"
-      tip="数据加载中...">
-      <a-card style="min-height: 100vh">
-        <template #title>
-          <div class="home_search_tips">
-            <a-tooltip content="点击返回标签">
-              <div
-                class="home_search_box"
-                @click="handleSearchBack">
-                <icon-left-circle class="home_search_back" />
-                <span class="home_search_text">返回</span>
-              </div>
-            </a-tooltip>
-
-            <a-radio-group
-              v-model="currentClassify"
-              @change="handleChangeType"
-              type="button">
-              <a-radio
-                v-for="item in smallClassifyList"
-                :value="item.lable_id"
-                :key="item.lable_id">
-                {{ item.label.name }}
-              </a-radio>
-            </a-radio-group>
-          </div>
-        </template>
-
-        <template v-if="imageList.length">
-          <a-list
-            :max-height="440"
-            :scrollbar="true"
-            :bordered="false"
-            @reach-bottom="handlePageChange">
-            <template #scroll-loading>
-              <div v-if="isBottom">
-                <a-space size="middle">
-                  <icon-thunderbolt />
-                  <span>小主,已经没有更多的数据了 ~ </span>
-                </a-space>
-              </div>
-              <a-spin
-                v-else
-                dot />
-            </template>
-            <div class="home_content">
-              <div
-                class="home_content_item"
-                @click="handlePreviewImage(item)"
-                v-for="item in imageList"
-                :key="item.id">
-                <a-image
-                  :preview="false"
-                  width="340"
-                  height="200"
-                  fit="cover"
-                  class="home_content_item_image"
-                  show-loader
-                  :src="`${IMAGE_URL_PREFIX}${item.coverimage}`">
-                </a-image>
-              </div>
+    <a-card style="min-height: 100vh">
+      <template #title>
+        <div class="home_search_tips">
+          <a-tooltip content="点击返回标签">
+            <div
+              class="home_search_box"
+              @click="handleSearchBack">
+              <icon-left-circle class="home_search_back" />
+              <span class="home_search_text">返回</span>
             </div>
-          </a-list>
+          </a-tooltip>
 
-          <a-back-top
-            target-container=".arco-scrollbar-container"
-            :style="{ position: 'absolute' }">
-            <a-tooltip content="返回顶部">
-              <a-button>
-                <icon-to-top />
-              </a-button>
-            </a-tooltip>
-          </a-back-top>
-        </template>
-
-        <div
-          class="home_empty"
-          v-else-if="!imageLoading && imageList.length === 0">
-          <a-empty description="小主,好像没有找到数据诶~" />
+          <a-radio-group
+            v-model="currentClassify"
+            @change="handleChangeType"
+            type="button">
+            <a-radio
+              v-for="item in smallClassifyList"
+              :value="item.lable_id"
+              :key="item.lable_id">
+              {{ item.label.name }}
+            </a-radio>
+          </a-radio-group>
         </div>
+      </template>
 
-        <div class="home_footer">
-          免责声明：本站所有图片均来自网络收集，如有侵权请联系删除
-        </div>
-      </a-card>
-    </a-spin>
+      <WallpaperCard
+        :image-list="imageList"
+        :loading="imageLoading"
+        :is-bottom="isBottom"
+        :first-loading="imageLoading && imageListCurrent === 1"
+        @reach-bottom="handlePageChange" />
 
-    <PreviewModal ref="previewModalRef" />
+      <div class="home_footer">
+        免责声明：本站所有图片均来自网络收集，如有侵权请联系删除
+      </div>
+    </a-card>
   </div>
 </template>
 
@@ -219,36 +167,7 @@ const handlePageChange = throttle(() => {
       }
     }
   }
-  .home_content {
-    position: relative;
-    display: flex;
-    flex-wrap: wrap;
-    width: 100%;
 
-    .home_content_item {
-      position: relative;
-      transition: transform 0.3s;
-      margin-bottom: 10px;
-      margin-right: 10px;
-      // 每一排最后一个元素
-      &:nth-last-child(1) {
-        margin-right: 0;
-      }
-      &:hover {
-        transform: scale(1.01);
-      }
-      .home_content_item_image {
-        cursor: pointer;
-        border-radius: 4px;
-      }
-    }
-  }
-  .home_empty {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
   .home_footer {
     text-align: center;
     position: absolute;
